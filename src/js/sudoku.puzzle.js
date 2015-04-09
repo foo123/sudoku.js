@@ -245,8 +245,6 @@
             CLEAR_DIRECTION_2: 1512,
             CLEAR_DIRECTIONS: 2048,
             
-            getWordAndDefinition: getWordAndDefinition,
-            getDefinitions: getDefinitions,
             getRange: getRange,
             isCell: isCell,
             isSeparatorCell: isSeparatorCell,

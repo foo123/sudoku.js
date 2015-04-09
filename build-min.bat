@@ -7,8 +7,11 @@ rem #   https://github.com/foo123/Beeld
 rem #
 rem ###################################################
 
-rem python %BUILDTOOLS%\Beeld.py --config ".\beeld.config" --tasks minify
+rem call python %BUILDTOOLS%\Beeld.py --config ".\beeld.config" --tasks minify
+rem call python %BUILDTOOLS%\Beeld.py --config ".\beeld.config" --tasks minify_css --compiler cssmin
 
-rem php -f %BUILDTOOLS%\Beeld.php -- --config=".\beeld.config" --tasks=minify
+rem call php -f %BUILDTOOLS%\Beeld.php -- --config=".\beeld.config" --tasks=minify
+rem call php -f %BUILDTOOLS%\Beeld.php -- --config=".\beeld.config" --tasks=minify_css --compiler=cssmin
 
-node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify
+call node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify
+call node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify_css --compiler cssmin
