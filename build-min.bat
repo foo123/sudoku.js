@@ -13,5 +13,5 @@ rem call python %BUILDTOOLS%\Beeld.py --config ".\beeld.config" --tasks minify_c
 rem call php -f %BUILDTOOLS%\Beeld.php -- --config=".\beeld.config" --tasks=minify
 rem call php -f %BUILDTOOLS%\Beeld.php -- --config=".\beeld.config" --tasks=minify_css --compiler=cssmin
 
-call node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify
-call node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify_css --compiler cssmin
+node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify
+rem call node %BUILDTOOLS%\Beeld.js --config ".\beeld.config" --tasks minify_css --compiler cssmin
