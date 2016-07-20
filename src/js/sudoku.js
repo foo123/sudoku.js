@@ -2,7 +2,7 @@
 *
 *   Sudoku.js
 *   @version: @@VERSION@@
-*   @@DEPENDENCIES@@
+*   @dependencies: Classy.js, PublishSubscribe, Asynchronous.js, jQuery
 *
 *   Sudoku Builder in JavaScript
 *   http://nikos-web-development.netai.net/
@@ -11,7 +11,7 @@
 *
 **/
 var 
-Sudoku = exports['@@MODULE_NAME@@'] = { }
+Sudoku = { }
 ,_jQuery_ = ('function' === typeof jQuery ? jQuery : function( ){ })
 ,_Asynchronous_ = ('function' === typeof Asynchronous ? Asynchronous : {isThread: function(){return false;}, path: function(){return {file:null, path:null};}})
 ;
