@@ -6,7 +6,7 @@
 *
 **/
 !function(Sudoku, undef){
-@@USE_STRICT@@
+"use strict";
 
 var $ = Sudoku.$, extend = $.extend,
     round = Math.round, min = Math.min, max = Math.max, locale = Sudoku.locale, getRange = Sudoku.range,
@@ -67,7 +67,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     constructor: function( ) {
         var self = this;
-        self.$superv('constructor');
+        self.$super('constructor');
         self.type = 'SUDOKU';
         self.difficulty = 1;
         self.dichromia = false;
@@ -80,7 +80,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         var self = this;
         self.difficulty = null;
         self.dichromia = null;
-        self.$superv('dispose');
+        self.$super('dispose');
         return self;
     },
     
@@ -89,7 +89,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     },
     
     getGridClasses: function( ) {
-        var classes = this.$superv('getGridClasses');
+        var classes = this.$super('getGridClasses');
         classes.push('sudoku');
         return classes;
     },
@@ -120,7 +120,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     },
     
     getDefaultCssStyles: function( pzlSelector, styles, dims ) {
-        var cssStyles = this.$superv('getDefaultCssStyles', [pzlSelector, styles, dims]);
+        var cssStyles = this.$super('getDefaultCssStyles', pzlSelector, styles, dims);
         
         if ( cssStyles[HAS]("separator") ) delete cssStyles.separator;
         if ( cssStyles[HAS]("placeholder") ) delete cssStyles.placeholder;
@@ -167,7 +167,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     updateStyles: function( andTrigger ) {
         var self = this, cssStyles = self.cssStyles, styles = self.styles;
-        self.$superv("updateStyles", [false]);
+        self.$super("updateStyles", false);
         cssStyles.cellClue.css.style.color = styles.clueColor;
         cssStyles.stickyNotes.css.style.color = styles.symbolColor;
         cssStyles.cellSubRowLast.css.style.borderBottomColor = styles.outerBorderColor;
@@ -180,7 +180,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     updateDimensions: function( andTrigger ) {
         var self = this;
-        self.$superv("updateDimensions", [false]);
+        self.$super("updateDimensions", false);
         if ( false !== andTrigger ) self.trigger( 'update-dimensions' );
         return self;
     },
@@ -547,14 +547,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     clearCells: function( useCached ) {
         var self = this;
-        self.$superv('clearCells', [useCached]);
+        self.$super('clearCells', useCached);
         self.cells.filter( is_not_clue ).removeClass('no-notes');
         return self;
     },
     
     revealSolution: function( ) {
         var self = this;
-        self.$superv('revealSolution');
+        self.$super('revealSolution');
         self.cells.filter( is_not_clue ).addClass('no-notes');
         return self;
     },
@@ -564,7 +564,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         cell = cell || self.currentInputCell || null;
         if ( cell && cell.length )
         {
-            self.$superv('revealCell', [cell]);
+            self.$super('revealCell', cell);
             cell.addClass('no-notes');
         }
         return self;
@@ -718,14 +718,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         if ( jsonTpl && jsonTpl[HAS]("dimensions") )
         {
             self.dichromia = !!jsonTpl.dichromia;
-            self.$superv('importTpl', [jsonTpl]);
+            self.$super('importTpl', jsonTpl);
         }
         return self;
     },
     
     exportTpl: function( ) {
         var self = this, 
-            tpl = self.$superv('exportTpl');
+            tpl = self.$super('exportTpl');
         if ( tpl ) tpl["dichromia"] = !!self.dichromia;
         return tpl;
     }

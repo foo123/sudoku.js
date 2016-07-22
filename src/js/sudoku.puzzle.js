@@ -5,7 +5,7 @@
 *
 **/
 !function(Sudoku, undef){
-@@USE_STRICT@@
+"use strict";
 
 var floor = Math.floor, round = Math.round, ceil = Math.ceil,
     min = Math.min, max = Math.max, abs = Math.abs, clamp = Sudoku.clamp, shuffle = Sudoku.shuffle,

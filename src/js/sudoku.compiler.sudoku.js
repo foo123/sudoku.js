@@ -5,7 +5,7 @@
 *
 **/
 !function(Sudoku, undef){
-@@USE_STRICT@@
+"use strict";
 
 var isWorker = Sudoku.isWorker,
     round = Math.round, min = Math.min, ceil = Math.ceil,
@@ -889,7 +889,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
     constructor: function( grid ) {
         var self = this;
         
-        self.$superv('constructor', ['Sudoku.SudokuCompiler']);
+        self.$super('constructor', 'Sudoku.SudokuCompiler');
         
         if ( isWorker )
         {
@@ -910,7 +910,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
                 .listen("dispose", function(data){
                     self.stop( ).dispose( );
                     // end worker
-                    close( );
+                    Sudoku.Asynchronous.close( );
                 })
             ;
         }
@@ -927,7 +927,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
         var self = this;
         self.solution = null;
         self.data = null;
-        self.$superv('dispose');
+        self.$super('dispose');
         return self;
     },
 
@@ -1056,4 +1056,4 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
     }
 });
 
-}(Sudoku);;
+}(Sudoku);

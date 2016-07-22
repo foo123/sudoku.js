@@ -9,132 +9,20 @@
 *
 *   (light-weight and scaled-down version of CrossWord.js, professional Crossword Builder in JavaScript, by same author)
 *
-**/!function ( root, name, deps, factory ) {
-    "use strict";
-    
-    //
-    // export the module umd-style (with deps bundled-in or external)
-    
-    // Get current filename/path
-    function getPath( isNode, isWebWorker, isAMD, isBrowser, amdMod ) 
-    {
-        var f;
-        if (isNode) return {file:__filename, path:__dirname};
-        else if (isWebWorker) return {file:(f=self.location.href), path:f.split('/').slice(0, -1).join('/')};
-        else if (isAMD&&amdMod&&amdMod.uri)  return {file:(f=amdMod.uri), path:f.split('/').slice(0, -1).join('/')};
-        else if (isBrowser&&(f=document.getElementsByTagName('script'))&&f.length) return {file:(f=f[f.length - 1].src), path:f.split('/').slice(0, -1).join('/')};
-        return {file:null,  path:null};
-    }
-    function getDeps( names, paths, deps, depsType, require/*offset*/ )
-    {
-        //offset = offset || 0;
-        var i, dl = names.length, mods = new Array( dl );
-        for (i=0; i<dl; i++) 
-            mods[ i ] = (1 === depsType)
-                    ? /* node */ (deps[ names[ i ] ] || require( paths[ i ] )) 
-                    : (2 === depsType ? /* amd args */ /*(deps[ i + offset ])*/ (require( names[ i ] )) : /* globals */ (deps[ names[ i ] ]))
-                ;
-        return mods;
-    }
-    // load javascript(s) (a)sync using <script> tags if browser, or importScripts if worker
-    function loadScripts( scope, base, names, paths, callback, imported )
-    {
-        var dl = names.length, i, rel, t, load, next, head, link;
-        if ( imported )
-        {
-            for (i=0; i<dl; i++) if ( !(names[ i ] in scope) ) importScripts( base + paths[ i ] );
-            return callback( );
-        }
-        head = document.getElementsByTagName("head")[ 0 ]; link = document.createElement( 'a' );
-        rel = /^\./; t = 0; i = 0;
-        load = function( url, cb ) {
-            var done = 0, script = document.createElement('script');
-            script.type = 'text/javascript'; script.language = 'javascript';
-            script.onload = script.onreadystatechange = function( ) {
-                if (!done && (!script.readyState || script.readyState == 'loaded' || script.readyState == 'complete'))
-                {
-                    done = 1; script.onload = script.onreadystatechange = null;
-                    cb( );
-                    head.removeChild( script ); script = null;
-                }
-            }
-            if ( rel.test( url ) ) 
-            {
-                // http://stackoverflow.com/a/14781678/3591273
-                // let the browser generate abs path
-                link.href = base + url;
-                url = link.protocol + "//" + link.host + link.pathname + link.search + link.hash;
-            }
-            // load it
-            script.src = url; head.appendChild( script );
-        };
-        next = function( ) {
-            if ( names[ i ] in scope )
-            {
-                if ( ++i >= dl ) callback( );
-                else if ( names[ i ] in scope ) next( ); 
-                else load( paths[ i ], next );
-            }
-            else if ( ++t < 30 ) { setTimeout( next, 30 ); }
-            else { t = 0; i++; next( ); }
-        };
-        while ( i < dl && (names[ i ] in scope) ) i++;
-        if ( i < dl ) load( paths[ i ], next );
-        else callback( );
-    }
-    
-    deps = deps || [[],[]];
-    
-    var isNode = ("undefined" !== typeof global) && ("[object global]" === {}.toString.call(global)),
-        isBrowser = !isNode && ("undefined" !== typeof navigator), 
-        isWebWorker = !isNode && ("function" === typeof importScripts) && (navigator instanceof WorkerNavigator),
-        isAMD = ("function" === typeof define) && define.amd,
-        isCommonJS = isNode && ("object" === typeof module) && module.exports,
-        currentGlobal = isWebWorker ? self : root, currentPath = getPath( isNode, isWebWorker, isAMD, isBrowser ), m,
-        names = [].concat(deps[0]), paths = [].concat(deps[1]), dl = names.length, i, requireJSPath, ext_js = /\.js$/i
-    ;
-    
-    // commonjs, node, etc..
-    if ( isCommonJS ) 
-    {
-        module.$deps = module.$deps || {};
-        module.exports = module.$deps[ name ] = factory.apply( root, [{NODE:module}].concat(getDeps( names, paths, module.$deps, 1, require )) ) || 1;
-    }
-    
-    // amd, requirejs, etc..
-    else if ( isAMD && ("function" === typeof require) && ("function" === typeof require.specified) &&
-        require.specified(name) ) 
-    {
-        if ( !require.defined(name) )
-        {
-            requireJSPath = { };
-            for (i=0; i<dl; i++) 
-                require.specified( names[ i ] ) || (requireJSPath[ names[ i ] ] = paths[ i ].replace(ext_js, ''));
-            //requireJSPath[ name ] = currentPath.file.replace(ext_js, '');
-            require.config({ paths: requireJSPath });
-            // named modules, require the module by name given
-            define( name, ["require", "exports", "module"].concat( names ), function( require, exports, module ) {
-                return factory.apply( root, [{AMD:module}].concat(getDeps( names, paths, arguments, 2, require )) );
-            });
-        }
-    }
-    
-    // browser, web worker, other loaders, etc.. + AMD optional
-    else if ( !(name in currentGlobal) )
-    {
-        loadScripts( currentGlobal, currentPath.path + '/', names, paths, function( ){ 
-            currentGlobal[ name ] = m = factory.apply( root, [{}].concat(getDeps( names, paths, currentGlobal )) ) || 1; 
-            isAMD && define( name, ["require"], function( ){ return m; } );
-        }, isWebWorker);
-    }
-
-
+**/!function( root, name, factory ){
+"use strict";
+var deps = "Classy, PublishSubscribe, Asynchronous".split(/\s*,\s*/);
+function extract(obj,keys,index,load){return obj ? keys.map(function(k, i){return (index ? obj[i] : obj[k]) || (load?load(k):null); }) : [];}
+if ( ('object'===typeof module) && module.exports ) /* CommonJS */
+    (module.$deps = module.$deps||{}) && (module.exports = module.$deps[name] = factory.apply(root, extract(module.$deps,deps,false,function(k){return require("./"+k.toLowerCase());})));
+else if ( ('function'===typeof define)&&define.amd&&('function'===typeof require)&&('function'===typeof require.specified)&&require.specified(name) /*&& !require.defined(name)*/ ) /* AMD */
+    define(name,['module'].concat(deps),function(module){factory.moduleUri = module.uri; return factory.apply(root, extract(Array.prototype.slice.call(arguments,1),deps,true));});
+else if ( !(name in root) ) /* Browser/WebWorker/.. */
+    (root[name]=factory.apply(root, extract(root,deps)))&&('function'===typeof(define))&&define.amd&&define(function(){return root[name];} );
 }(  /* current root */          this, 
     /* module name */           "Sudoku",
-    /* module dependencies */   [['Classy', 'PublishSubscribe', 'Asynchronous'], ['./classy.js', './publishsubscribe.js', './asynchronous.js']], 
-    /* module factory */        function( exports, Classy, PublishSubscribe, Asynchronous ) {
-        
-    /* main code starts here */
+    /* module factory */        function ModuleFactory__Sudoku( Classy, PublishSubscribe, Asynchronous ){
+/* main code starts here */
 
 /**
 *
@@ -148,8 +36,9 @@
 *   (light-weight and scaled-down version of CrossWord.js, professional Crossword Builder in JavaScript, by same author)
 *
 **/
+"use strict";
 var 
-Sudoku = exports['Sudoku'] = { }
+Sudoku = { }
 ,_jQuery_ = ('function' === typeof jQuery ? jQuery : function( ){ })
 ,_Asynchronous_ = ('function' === typeof Asynchronous ? Asynchronous : {isThread: function(){return false;}, path: function(){return {file:null, path:null};}})
 ;
@@ -356,7 +245,7 @@ Classy.Merge( Sudoku, {
     ,$: $
     
     ,isWorker: Asynchronous.isThread( )
-    ,Path: Asynchronous.path( exports.AMD )
+    ,Path: Asynchronous.path( ModuleFactory__Sudoku.moduleUri )
     
     ,UUID: function( NS ) {
         return [NS||'pzl', ++_UUID, new Date().getTime()].join('_');
@@ -1775,7 +1664,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     constructor: function( ) {
         var self = this;
-        self.$superv('constructor');
+        self.$super('constructor');
         self.type = 'SUDOKU';
         self.difficulty = 1;
         self.dichromia = false;
@@ -1788,7 +1677,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         var self = this;
         self.difficulty = null;
         self.dichromia = null;
-        self.$superv('dispose');
+        self.$super('dispose');
         return self;
     },
     
@@ -1797,7 +1686,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     },
     
     getGridClasses: function( ) {
-        var classes = this.$superv('getGridClasses');
+        var classes = this.$super('getGridClasses');
         classes.push('sudoku');
         return classes;
     },
@@ -1828,7 +1717,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     },
     
     getDefaultCssStyles: function( pzlSelector, styles, dims ) {
-        var cssStyles = this.$superv('getDefaultCssStyles', [pzlSelector, styles, dims]);
+        var cssStyles = this.$super('getDefaultCssStyles', pzlSelector, styles, dims);
         
         if ( cssStyles[HAS]("separator") ) delete cssStyles.separator;
         if ( cssStyles[HAS]("placeholder") ) delete cssStyles.placeholder;
@@ -1875,7 +1764,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     updateStyles: function( andTrigger ) {
         var self = this, cssStyles = self.cssStyles, styles = self.styles;
-        self.$superv("updateStyles", [false]);
+        self.$super("updateStyles", false);
         cssStyles.cellClue.css.style.color = styles.clueColor;
         cssStyles.stickyNotes.css.style.color = styles.symbolColor;
         cssStyles.cellSubRowLast.css.style.borderBottomColor = styles.outerBorderColor;
@@ -1888,7 +1777,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     updateDimensions: function( andTrigger ) {
         var self = this;
-        self.$superv("updateDimensions", [false]);
+        self.$super("updateDimensions", false);
         if ( false !== andTrigger ) self.trigger( 'update-dimensions' );
         return self;
     },
@@ -2255,14 +2144,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     
     clearCells: function( useCached ) {
         var self = this;
-        self.$superv('clearCells', [useCached]);
+        self.$super('clearCells', useCached);
         self.cells.filter( is_not_clue ).removeClass('no-notes');
         return self;
     },
     
     revealSolution: function( ) {
         var self = this;
-        self.$superv('revealSolution');
+        self.$super('revealSolution');
         self.cells.filter( is_not_clue ).addClass('no-notes');
         return self;
     },
@@ -2272,7 +2161,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         cell = cell || self.currentInputCell || null;
         if ( cell && cell.length )
         {
-            self.$superv('revealCell', [cell]);
+            self.$super('revealCell', cell);
             cell.addClass('no-notes');
         }
         return self;
@@ -2426,14 +2315,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         if ( jsonTpl && jsonTpl[HAS]("dimensions") )
         {
             self.dichromia = !!jsonTpl.dichromia;
-            self.$superv('importTpl', [jsonTpl]);
+            self.$super('importTpl', jsonTpl);
         }
         return self;
     },
     
     exportTpl: function( ) {
         var self = this, 
-            tpl = self.$superv('exportTpl');
+            tpl = self.$super('exportTpl');
         if ( tpl ) tpl["dichromia"] = !!self.dichromia;
         return tpl;
     }
@@ -2472,7 +2361,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     
     constructor: function( component ) {
         var self = this;
-        self.$superv( 'constructor', [100] );
+        self.$super( 'constructor', 100/*, false*/ );
         self.initPubSub( );
         self.component = component || 'Sudoku.Compiler';
         self.cutoff_mode = Compiler.MODE.AUTO;
@@ -2494,7 +2383,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     
     dispose: function( ) {
         var self = this;
-        self.$superv( 'dispose' );
+        self.$super( 'dispose' );
         self.disposePubSub( );
         self.component = null;
         self.grid = null;
@@ -2508,7 +2397,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
 
     fork: function( ) {
         var self = this;
-        self.unfork( true ).$superv( 'fork', [self.component, Sudoku.Path.file] );
+        self.unfork( true ).$super( 'fork', self.component, Sudoku.Path.file );
         return self;
     },
     
@@ -3436,7 +3325,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
     constructor: function( grid ) {
         var self = this;
         
-        self.$superv('constructor', ['Sudoku.SudokuCompiler']);
+        self.$super('constructor', 'Sudoku.SudokuCompiler');
         
         if ( isWorker )
         {
@@ -3457,7 +3346,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
                 .listen("dispose", function(data){
                     self.stop( ).dispose( );
                     // end worker
-                    close( );
+                    Sudoku.Asynchronous.close( );
                 })
             ;
         }
@@ -3474,7 +3363,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
         var self = this;
         self.solution = null;
         self.data = null;
-        self.$superv('dispose');
+        self.$super('dispose');
         return self;
     },
 
@@ -3603,8 +3492,8 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
     }
 });
 
-}(Sudoku);;    
-    /* main code ends here */
-    /* export the module */
-    return exports["Sudoku"];
+}(Sudoku);
+/* main code ends here */
+/* export the module */
+return Sudoku;
 });

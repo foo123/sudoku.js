@@ -5,7 +5,7 @@
 *
 **/
 !function(Sudoku, undef){
-@@USE_STRICT@@
+"use strict";
 
 //
 // Sudoku Compiler Base Class, implements/extends Asynchronous and PublishSubscribe
@@ -31,7 +31,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     
     constructor: function( component ) {
         var self = this;
-        self.$superv( 'constructor', [100] );
+        self.$super( 'constructor', 100/*, false*/ );
         self.initPubSub( );
         self.component = component || 'Sudoku.Compiler';
         self.cutoff_mode = Compiler.MODE.AUTO;
@@ -53,7 +53,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     
     dispose: function( ) {
         var self = this;
-        self.$superv( 'dispose' );
+        self.$super( 'dispose' );
         self.disposePubSub( );
         self.component = null;
         self.grid = null;
@@ -67,7 +67,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
 
     fork: function( ) {
         var self = this;
-        self.unfork( true ).$superv( 'fork', [self.component, Sudoku.Path.file] );
+        self.unfork( true ).$super( 'fork', self.component, Sudoku.Path.file );
         return self;
     },
     

@@ -4,7 +4,7 @@
 * 
 **/
 !function(Sudoku, undef) {
-@@USE_STRICT@@
+"use strict";
 
 var HAS = 'hasOwnProperty', 
     fromJSON = JSON.parse, 

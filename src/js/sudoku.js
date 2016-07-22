@@ -10,13 +10,14 @@
 *   (light-weight and scaled-down version of CrossWord.js, professional Crossword Builder in JavaScript, by same author)
 *
 **/
+"use strict";
 var 
 Sudoku = { }
 ,_jQuery_ = ('function' === typeof jQuery ? jQuery : function( ){ })
 ,_Asynchronous_ = ('function' === typeof Asynchronous ? Asynchronous : {isThread: function(){return false;}, path: function(){return {file:null, path:null};}})
 ;
 !function(Sudoku, Classy, PublishSubscribe, Asynchronous, $, undef) {
-@@USE_STRICT@@
+"use strict";
 
 var PROTO = "prototype", HAS = 'hasOwnProperty'
     ,OP = Object[PROTO], AP = Array[PROTO], FP = Function[PROTO]
@@ -218,7 +219,7 @@ Classy.Merge( Sudoku, {
     ,$: $
     
     ,isWorker: Asynchronous.isThread( )
-    ,Path: Asynchronous.path( exports.AMD )
+    ,Path: Asynchronous.path( ModuleFactory__Sudoku.moduleUri )
     
     ,UUID: function( NS ) {
         return [NS||'pzl', ++_UUID, new Date().getTime()].join('_');
