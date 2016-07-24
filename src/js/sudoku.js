@@ -218,7 +218,7 @@ Classy.Merge( Sudoku, {
     ,PublishSubscribe: PublishSubscribe
     ,$: $
     
-    ,isWorker: Asynchronous.isThread( )
+    ,isWorker: Asynchronous.isThread( null, true )
     ,Path: Asynchronous.path( ModuleFactory__Sudoku.moduleUri )
     
     ,UUID: function( NS ) {
