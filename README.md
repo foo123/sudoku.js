@@ -9,4 +9,4 @@ a scaled-down version of CrossWord.js, professional Crossword Builder in JavaScr
 ![sudoku](sudoku.jpg)
 
 
-[![sudoku app](sudoku_app.png)](http://foo123.github.io/examples/sudoku)
+[![sudoku playground app](sudoku_app.png)](http://foo123.github.io/examples/sudoku)
