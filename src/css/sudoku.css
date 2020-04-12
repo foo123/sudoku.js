@@ -3,7 +3,7 @@
 *   Sudoku.js
 *
 *   Sudoku Builder in JavaScript
-*   http://nikos-web-development.netai.net/
+*   https://foo123.github.io
 *
 **/
 .crossword
@@ -133,7 +133,7 @@
     display: none;
     z-index: -1;
 }
-.crossword.user-mode  > .cell.default > input 
+.crossword.user-mode  > .cell.default > input
 {
     display: block;
     z-index: 1;
@@ -276,7 +276,7 @@
 .crossword.sudoku .cell .sticky-notes
 {
     background-color: transparent;
-    border:none;    
+    border:none;
     margin:0;
     padding:0;
     position: absolute;
@@ -295,7 +295,7 @@
     border-radius: 2px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
     font-size: 0.5em;
-    border:1px solid #fff;    
+    border:1px solid #fff;
     height: 100%;
     left: 0;
     margin: 0;
@@ -482,7 +482,21 @@
 .crossword.sudoku.dichromia.numRows-9.numColumns-9 .cell.square-7,
 .crossword.sudoku.dichromia.numRows-9.numColumns-9 .cell.square-5,
 .crossword.sudoku.dichromia.numRows-9.numColumns-9 .cell.square-3,
-.crossword.sudoku.dichromia.numRows-9.numColumns-9 .cell.square-1
+.crossword.sudoku.dichromia.numRows-9.numColumns-9 .cell.square-1,
+.crossword.sudoku.dichromia.numRows-12.numColumns-12 .cell.square-11,
+.crossword.sudoku.dichromia.numRows-12.numColumns-12 .cell.square-9,
+.crossword.sudoku.dichromia.numRows-12.numColumns-12 .cell.square-7,
+.crossword.sudoku.dichromia.numRows-12.numColumns-12 .cell.square-5,
+.crossword.sudoku.dichromia.numRows-12.numColumns-12 .cell.square-3,
+.crossword.sudoku.dichromia.numRows-12.numColumns-12 .cell.square-1,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-14,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-12,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-11,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-9,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-6,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-4,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-3,
+.crossword.sudoku.dichromia.numRows-16.numColumns-16 .cell.square-1
 {
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,.1)), color-stop(100%,rgba(0,0,0,.1)));
     background-image: -webkit-linear-gradient(top,  rgba(0,0,0,.1) 0%,rgba(0,0,0,.1) 100%);
@@ -502,24 +516,24 @@
 
 .crossword  .cell.ui-selecting,
 .crossword  .cell.ui-selected
-{ 
-    background-color: #FECA40 !important; 
-    border-color: #FECA40 !important; 
+{
+    background-color: #FECA40 !important;
+    border-color: #FECA40 !important;
 }
 .crossword  > .grid-image.grid-selected
-{ 
-    border: 2px solid #F39814 !important; 
-    z-index: 150 !important; 
-}
-.crossword  .grid-image.ui-resizable.resizing 
 {
-    z-index: 150 !important; 
+    border: 2px solid #F39814 !important;
+    z-index: 150 !important;
+}
+.crossword  .grid-image.ui-resizable.resizing
+{
+    z-index: 150 !important;
 }
 .crossword/*.ui-resizable*/  .ui-resizable-handle {
-    z-index: 200 !important; 
+    z-index: 200 !important;
 }
 .crossword.ui-resizable.resizing,
-.crossword  .ui-resizable.resizing 
+.crossword  .ui-resizable.resizing
 {
     overflow: visible;
 }

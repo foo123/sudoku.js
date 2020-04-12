@@ -1,29 +1,29 @@
 /**
-* 
+*
 * Sudoku.Factory Class
-* 
+*
 **/
 !function(Sudoku, undef) {
 "use strict";
 
-var HAS = 'hasOwnProperty', 
-    fromJSON = JSON.parse, 
+var HAS = 'hasOwnProperty',
+    fromJSON = JSON.parse,
     transformProperty = null,
-    
+
     // http://davidwalsh.name/add-rules-stylesheets
     addCSSRule = function( style, selector, rules, index ) {
-        if ( "insertRule" in style.sheet ) 
+        if ( "insertRule" in style.sheet )
         {
             style.sheet.insertRule( selector + "{" + rules + "}", index );
             return style.sheet.cssRules[ index ];
         }
-        else if ( "addRule" in style.sheet ) 
+        else if ( "addRule" in style.sheet )
         {
             style.sheet.addRule( selector, rules, index );
             return style.sheet.rules[ index ];
         }
     },
-    
+
     addCSS = function( style, css ) {
         if ( "object" === typeof css )
         {
@@ -39,14 +39,14 @@ var HAS = 'hasOwnProperty',
         }
         return css;
     },
-    
+
     getCSS = function( style ) {
         var css = [], sheet = style.sheet, i,
             rules = sheet.cssRules ? sheet.cssRules : sheet.rules;
         for (i=0; i<rules.length; i++) css.push(rules[i].cssText ? rules[i].cssText : rules.style.cssText);
         return css.join("\n");
     },
-    
+
     createStyleSheet = function( media, css ) {
         // Create the <style> tag
         var style = document.createElement("style");
@@ -60,46 +60,46 @@ var HAS = 'hasOwnProperty',
         if ( css ) addCSS( style, css );
         return style;
     },
-    
+
     disposeStyleSheet = function( style ) {
         if ( style ) document.head.removeChild( style );
     },
-    
+
     Factory;
 
 Factory = Sudoku.Factory = Sudoku.StaticClass({
-    
+
     GRIDS: {}
-    
+
     ,getGrid: function( type ) {
         type = type ? type.toUpperCase( ) : null;
         if ( !!type && Factory.GRIDS[HAS](type) ) return new Factory.GRIDS[ type ]( );
         return null;
     }
-    
+
     ,getCompiler: function( grid ) {
-        if ( Sudoku.Compiler && grid ) 
+        if ( Sudoku.Compiler && grid )
         {
             if ( 'SUDOKU' === grid.type && Sudoku.SudokuCompiler )
                 return new Sudoku.SudokuCompiler( grid );
         }
         return null;
     }
-    
+
     ,importTpl: function( jsonTpl/*, options*/ ) {
         var sudoku = Factory.getGrid( jsonTpl ? (jsonTpl.type || null) : null ) || null;
         if ( sudoku ) sudoku.importTpl( jsonTpl/*, options || {}*/ );
         return sudoku;
     }
-    
+
     ,createStyleSheet: createStyleSheet
-    
+
     ,disposeStyleSheet: disposeStyleSheet
-    
+
     ,addCSS: addCSS
-    
+
     ,getCSS: getCSS
-    
+
     ,getTransformProperty: function( el ) {
         if ( !transformProperty )
         {
@@ -116,9 +116,9 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
             ;
 
             // test different vendor prefixes of these properties
-            while ( i-- ) 
+            while ( i-- )
             {
-                if ( style[HAS](testProperties[ i ]) ) 
+                if ( style[HAS](testProperties[ i ]) )
                 {
                     transformProperty = testProperties[ i ];
                     break;
@@ -127,14 +127,14 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
         }
         return transformProperty;
     }
-    
+
     ,getElement: function( element ) {
         element = element || 'div';
-        var tag, id, className, el, 
-            idPos = element.indexOf('#'), 
+        var tag, id, className, el,
+            idPos = element.indexOf('#'),
             classPos = element.indexOf('.')
         ;
-        
+
         if ( idPos > -1 )
         {
             tag = element.slice( 0, idPos );

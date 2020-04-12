@@ -13,14 +13,14 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     extends: Sudoku.Asynchronous, implements: Sudoku.PublishSubscribe
     }, {
     __static__: {
-        
+
         STATUS: {
             INIT: 0,
             RUNNING: 1,
             NOT_FOUND: 4,
             FOUND: 16
         },
-        
+
         MODE: {
             AUTO: 0,
             NONE: 1,
@@ -28,7 +28,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
             EXPONENTIAL: 3
         }
     },
-    
+
     constructor: function( component ) {
         var self = this;
         self.$super( 'constructor', 100/*, false*/ );
@@ -38,7 +38,7 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
         self.status = Compiler.STATUS.INIT;
         self.grid = null;
     },
-    
+
     component: null,
     grid: null,
     status: null,
@@ -46,11 +46,11 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     multiPass: true,
     timeLimit: 0,
     cutoff_mode: null,
-    
+
     NUM_ALTERNATIVES: 5,
     MIN_ALTERNATIVES: 2,
     _NUM_ALTERNATIVES: 5,
-    
+
     dispose: function( ) {
         var self = this;
         self.$super( 'dispose' );
@@ -70,33 +70,33 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
         self.unfork( true ).$super( 'fork', self.component, Sudoku.Path.file );
         return self;
     },
-    
+
     stop: function( explicit ) {
         var self = this, delay = 500;
-        if ( self.$thread ) 
+        if ( self.$thread )
         {
             self.send( 'stop' );
-            if ( true === explicit ) setTimeout(function(){self.unfork(true);}, delay); 
+            if ( true === explicit ) setTimeout(function(){self.unfork(true);}, delay);
         }
         if ( self.$queue.length ) self.empty( );
         return self;
     },
-    
+
     setGrid: function( grid ) {
         if ( grid ) this.grid = grid;
         return this;
     },
-    
+
     // @override
     setSolution: function( ) {
         return this;
     },
-    
+
     // @override
     clearSolution: function( ) {
         return this;
     },
-    
+
     // @override
     compile: function( ) {
         return this;

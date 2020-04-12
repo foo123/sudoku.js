@@ -8,15 +8,15 @@
 !function(Sudoku, undef){
 "use strict";
 
-var $ = Sudoku.$, extend = $.extend,
-    round = Math.round, min = Math.min, max = Math.max, locale = Sudoku.locale, getRange = Sudoku.range,
-    Grid = Sudoku.Grid, moveCursor = Grid.moveCursor, 
+var $ = Sudoku.$, extend = $.extend, stdMath = Math,
+    round = stdMath.round, min = stdMath.min, max = stdMath.max, locale = Sudoku.locale, getRange = Sudoku.range,
+    Grid = Sudoku.Grid, moveCursor = Grid.moveCursor,
     Factory = Sudoku.Factory, Element = Factory.getElement,
-    CELL = Grid.CELL, CLUE = Grid.CLUE, 
+    CELL = Grid.CELL, CLUE = Grid.CLUE,
     SPACE_KEY = 32, ESC_KEY = 27, KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39,  KEY_DOWN = 40,
-    HORIZONTAL = 1, VERTICAL = 2, 
-    ERRORCLASS = Grid.ERRORCLASS, 
-    HIGHLIGHTCLASS = Grid.HIGHLIGHTCLASS, 
+    HORIZONTAL = 1, VERTICAL = 2,
+    ERRORCLASS = Grid.ERRORCLASS,
+    HIGHLIGHTCLASS = Grid.HIGHLIGHTCLASS,
     FOCUSEDCLASS = Grid.FOCUSEDCLASS,
     HAS = 'hasOwnProperty'
 ;
@@ -24,10 +24,10 @@ var $ = Sudoku.$, extend = $.extend,
 function get_value( cell, index, cells ) { cell.index = index; return cell.val; }
 function is_clue( )  { return this.clue; }
 function is_not_clue( ) { return !this.clue; }
-function find_alternatives( cell, alphabet, clues ) 
+function find_alternatives( cell, alphabet, clues )
 {
     var alts = alphabet.slice( 0 ), l = clues.length, k, clue, pos;
-        
+
     if ( !l ) return alts;
     for (k=0; k<l; k++)
     {
@@ -45,7 +45,7 @@ function find_alternatives( cell, alphabet, clues )
 }
 function update_notes( sudoku )
 {
-    var clues = sudoku.cells.filter( is_clue ), 
+    var clues = sudoku.cells.filter( is_clue ),
         inputs = sudoku.cells.filter( is_not_clue ),
         alphabet = sudoku.alphabet.split("")
     ;
@@ -64,7 +64,7 @@ function update_notes( sudoku )
 
 // add this crossword type
 Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
-    
+
     constructor: function( ) {
         var self = this;
         self.$super('constructor');
@@ -72,10 +72,10 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         self.difficulty = 1;
         self.dichromia = false;
     },
-    
+
     difficulty: 1,
     dichromia: false,
-    
+
     dispose: function( ) {
         var self = this;
         self.difficulty = null;
@@ -83,17 +83,17 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         self.$super('dispose');
         return self;
     },
-    
+
     getSelector: function( ) {
         return '#'+this.id+'.crossword.sudoku';
     },
-    
+
     getGridClasses: function( ) {
         var classes = this.$super('getGridClasses');
         classes.push('sudoku');
         return classes;
     },
-    
+
     getDefaultDimensions: function( ) {
         return {
             rows: 9,
@@ -103,7 +103,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             cellSize: 70
         };
     },
-    
+
     getDefaultStyles: function( ) {
         return {
             cellColor: '#ffffff',
@@ -118,13 +118,13 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             clueColor: '#000000'
         };
     },
-    
+
     getDefaultCssStyles: function( pzlSelector, styles, dims ) {
         var cssStyles = this.$super('getDefaultCssStyles', pzlSelector, styles, dims);
-        
+
         if ( cssStyles[HAS]("separator") ) delete cssStyles.separator;
         if ( cssStyles[HAS]("placeholder") ) delete cssStyles.placeholder;
-        
+
         cssStyles.stickyNotes = {
             selector: pzlSelector+' > .cell .sticky-notes a.sticky-note:before',
             rules: [
@@ -164,7 +164,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         };
         return cssStyles;
     },
-    
+
     updateStyles: function( andTrigger ) {
         var self = this, cssStyles = self.cssStyles, styles = self.styles;
         self.$super("updateStyles", false);
@@ -177,21 +177,21 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         if ( false !== andTrigger ) self.trigger( 'update-styles' );
         return self;
     },
-    
+
     updateDimensions: function( andTrigger ) {
         var self = this;
         self.$super("updateDimensions", false);
         if ( false !== andTrigger ) self.trigger( 'update-dimensions' );
         return self;
     },
-    
+
     enableNotes: function( bool ) {
         var self = this, g = self.grid;
         if ( self.userMode )
         {
-            if ( bool ) 
+            if ( bool )
             {
-                if ( !g.hasClass('notes') ) 
+                if ( !g.hasClass('notes') )
                 {
                     self.enableAllNotes( false );
                     g.addClass('notes');
@@ -204,14 +204,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         }
         return self;
     },
-    
+
     enableAllNotes: function( bool ) {
         var self = this, g = self.grid;
         if ( self.userMode )
         {
-            if ( bool ) 
+            if ( bool )
             {
-                if ( !g.hasClass('all-notes') ) 
+                if ( !g.hasClass('all-notes') )
                 {
                     self.enableNotes( false );
                     g.addClass('all-notes');
@@ -224,14 +224,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         }
         return self;
     },
-    
+
     clearNotes: function( ) {
         this.cells.removeClass('with-notes').find('.sticky-note.noted').removeClass('noted');
         return this;
     },
-    
+
     handleInput: function( evt, input, prevval ) {
-        var self = this, AB = self.alphabet, 
+        var self = this, AB = self.alphabet,
             val = input.value.toUpperCase( ), $input = $(input),
             rows = self.dimensions.rows,
             columns = self.dimensions.columns
@@ -252,19 +252,19 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         input.value = val;
         if ( val !== prevval ) self.trigger( 'input', {input: input} );
     },
-    
+
     buildGrid: function( dims ) {
         var self = this, r, c, grid, row, cell, styles, cssStyles,
-            rows, columns, cellSize, subrows, subcolumns, 
+            rows, columns, cellSize, subrows, subcolumns,
             modr, modc, sj, sic, sicinc
         ;
-        
+
         dims = dims || {};
-        
+
         if ( !self.dimensions ) self.dimensions = self.getDefaultDimensions( );
         if ( !self.styles ) self.styles = self.getDefaultStyles( );
         self.userMode = false;
-        
+
         if ( dims.rows ) self.dimensions.rows = dims.rows;
         if ( dims.columns ) self.dimensions.columns = dims.columns;
         if ( dims.subRows ) self.dimensions.subRows = dims.subRows;
@@ -277,7 +277,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         cellSize = self.dimensions.cellSize;
         styles = self.styles;
         cssStyles = self.cssStyles;
-        
+
         cssStyles.grid.css.style.width = (cellSize*columns) + 'px';
         cssStyles.grid.css.style.height = (cellSize*rows) + 'px';
         cssStyles.grid.css.style.borderColor = styles.outerBorderColor;
@@ -296,10 +296,10 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         cssStyles.cellSubRowLast.css.style.borderBottomWidth = styles.outerBorderThickness + 'px';
         cssStyles.cellSubColLast.css.style.borderRightColor = styles.outerBorderColor;
         cssStyles.cellSubColLast.css.style.borderRightWidth = styles.outerBorderThickness + 'px';
-        
+
         grid = Element( 'div' + '#' + self.id + '.' + self.getGridClasses( ).join( '.' ) );
         grid.setAttribute('id', self.id);
-        
+
         sic = 0; sicinc = /*~~(columns/subcolumns)*/subrows;
         for (r=0; r<rows; r++)
         {
@@ -309,36 +309,36 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             {
                 modc = c % subcolumns;
                 cell = self.buildCell( subrows, subcolumns, r, c, sic+sj, cellSize, [
-                    'cell default', 
+                    'cell default',
                     'row-' + r + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')) + (0==modr ? ' subrow-first' : (subrows-1==modr ? ' subrow-last' : '')),
                     'column-' + c  + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))  + (0==modc ? ' subcolumn-first' : (subcolumns-1==modc ? ' subcolumn-last' : '')),
                     'square-' + (sic+sj)
                 ].join(' '));
-                
+
                 grid.appendChild( cell );
                 if (subcolumns-1 == modc)  sj++;
             }
             if (subrows-1 == modr) sic+=sicinc;
         }
-        
+
         self.grid = $( grid );
         self.cells = self.grid.children( '.cell' );
         self.setDichromia( self.dichromia );
-        
+
         // resizable grid
         self.setResizable( true, true );
-            
+
         return self;
     },
-    
+
     buildCell: function( subrows, subcolumns, row, col, squ, size, className ) {
         var cell = Element( 'div' ), input = Element( 'input' ),
-            notes = Element( 'div.notes' ), stickynotes = Element( 'div.sticky-notes' ), 
+            notes = Element( 'div.notes' ), stickynotes = Element( 'div.sticky-notes' ),
             i, j, k, noterow, stickynoterow, note, stickynote,
             max_subcolumns = max(subcolumns, subrows),  min_subrows = min(subcolumns, subrows),
             nw = round( 100/max_subcolumns ), nfs = round( 2*nw )
         ;
-        
+
         k = 0;
         for (i=0; i<min_subrows; i++)
         {
@@ -362,7 +362,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             notes.appendChild( noterow );
             stickynotes.appendChild( stickynoterow );
         }
-        
+
         cell.cellType = CLUE;
         cell.highlightType = 0;
         cell.row = row;
@@ -371,32 +371,32 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         cell.clue = true;
         cell.style.top = (row*size)+'px';
         cell.style.left = (col*size)+'px';
-        
+
         input.solution = null;
         input.highlightType = 0;
         input.readOnly = false;
         input.setAttribute( "type", "text" );
         input.setAttribute( "value", "" );
         input.setAttribute( "maxlength", "1" );
-        
+
         cell.appendChild( input );
         cell.appendChild( stickynotes );
         cell.appendChild( notes );
-        
+
         if ( className ) cell.className = ''+className;
         return cell;
     },
-    
+
     onBuildComplete: function( ) {
         var self = this, grid = self.grid;
-        
+
         if ( $.fn.contextMenu )
         {
             // contextmenus(s) for separator cells
             grid.contextMenu({
-                
-                selector: '.cell', 
-                
+
+                selector: '.cell',
+
                 items: {
                     "make-clue": {name: locale("MAKE_CLUE"), icon: "add-definition"},
                     "unmake-clue": {name: locale("UNMAKE_CLUE"), icon: "clear"}
@@ -407,52 +407,52 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
                 }
             });
         }
-        
+
         grid.on('keydown click focus', '.cell:not(.clue) > input', function( evt ){
-            var input = evt.target, cell = $(input).closest( '.cell' ), 
+            var input = evt.target, cell = $(input).closest( '.cell' ),
                 code, prevcell, cells = self.cells, prevval;
             if ( CELL === cell[0].cellType )
             {
                 prevcell = self.currentInputCell;
                 self.currentInputCell = cell;
-                
+
                 if ( 'keydown' === evt.type )
                 {
                     code = evt.which;
                     // http://stackoverflow.com/a/5829387/3591273
                     //ch = String.fromCharCode((96 <= code && code <= 105)? code-48 : code).toUpperCase( );
-                    
+
                     if ( ESC_KEY === code )
                     {
                         setTimeout(function( ) {
                             cells.removeClass('current');
                         }, 100);
-                        
+
                         evt.preventDefault( );
                         evt.stopPropagation( );
-            
+
                         return false;
                     }
-                    
+
                     else if ( KEY_UP === code || KEY_DOWN === code || KEY_LEFT === code || KEY_RIGHT === code )
                     {
                         cells.removeClass('current');
-                        
+
                         // grid navigation with keyboard
                         setTimeout(function( ) {
                             self.handleKeyNav( evt, cell );
                         }, 100);
-                        
+
                         evt.preventDefault( );
                         evt.stopPropagation( );
-            
+
                         return false;
                     }
-                    
+
                     else
                     {
                         cells.removeClass('current');
-                        
+
                         // digits input
                         prevval = input.value;
                         setTimeout(function( ) {
@@ -468,15 +468,15 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
                 }
             }
         });
-        
+
         grid.on('click', '.cell:not(.clue)', function( evt ){
             var cell = $(evt.target), prevcell;
-            
+
             if ( CELL === cell[0].cellType )
             {
                 prevcell = self.currentInputCell;
                 self.currentInputCell = cell;
-                
+
                 if ( prevcell ) prevcell.removeClass( 'current' );
                 cell.addClass( 'current' );
             }
@@ -485,31 +485,31 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
 
             return false;
         });
-        
+
         grid.on('click', '.cell:not(.clue) > .notes', function( evt ){
             $(evt.target).closest('.cell').removeClass( 'current' );
             evt.preventDefault( );
             evt.stopPropagation( );
             return false;
         });
-        
+
         grid.on('click', '.cell:not(.clue) .note', function( evt ){
-            var $note = $(evt.target), $cell = $note.closest('.cell'), 
+            var $note = $(evt.target), $cell = $note.closest('.cell'),
                 input = $cell[0].firstChild, $input = $(input);
-            
+
             $cell.removeClass('current');
-            if ( !$note.hasClass('note-disabled') ) 
+            if ( !$note.hasClass('note-disabled') )
             {
                 if ( grid.hasClass('notes') )
                 {
                     if ( $cell.hasClass('no-notes') ) $cell.removeClass('no-notes');
                     var stickynote = $cell.find('.sticky-note[title="'+$note.attr('title')+'"]');
-                    if ( stickynote.hasClass('noted') ) 
+                    if ( stickynote.hasClass('noted') )
                     {
                         stickynote.removeClass('noted');
                         //if ( !$cell.find('.sticky-note.noted').length )
                     }
-                    else 
+                    else
                     {
                         stickynote.addClass('noted');
                         //$cell.addClass('with-notes');
@@ -540,25 +540,25 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             evt.stopPropagation( );
             return false;
         });
-        
-        
+
+
         return self;
     },
-    
+
     clearCells: function( useCached ) {
         var self = this;
         self.$super('clearCells', useCached);
         self.cells.filter( is_not_clue ).removeClass('no-notes');
         return self;
     },
-    
+
     revealSolution: function( ) {
         var self = this;
         self.$super('revealSolution');
         self.cells.filter( is_not_clue ).addClass('no-notes');
         return self;
     },
-    
+
     revealCell: function( cell ) {
         var self = this;
         cell = cell || self.currentInputCell || null;
@@ -569,7 +569,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         }
         return self;
     },
-    
+
     decorateCell: function( $cell, key ) {
         var self = this, gridcell = $cell[0], digit = gridcell.firstChild;
         if ( 'make-clue' === key )
@@ -591,7 +591,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             $cell.removeClass( 'clue' );
         }
     },
-    
+
     setAlphabet: function( alphabet ) {
         var self = this;
         if ( alphabet && alphabet.length >= self.dimensions.rows )
@@ -604,7 +604,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         }
         return self;
     },
-    
+
     setDichromia: function( bool ) {
         var self = this, g = self.grid;
         self.dichromia = bool = !!bool;
@@ -612,13 +612,13 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         else if ( !bool ) g.removeClass('dichromia');
         return self;
     },
-    
+
     getRawGrid: function( ) {
         var self = this, i, l, cell, digit,
             r = self.dimensions.rows, c = self.dimensions.columns,
             l = r*c, grid
         ;
-        
+
         grid = {
              alphabet: self.alphabet ? self.alphabet.slice() : null
             ,difficulty: self.difficulty || 1
@@ -643,14 +643,14 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         });
         return grid;
     },
-    
+
     setRawGrid: function( grid ) {
         if ( !grid ) return this;
         var self = this, i, l, cell, digit, gridcell, $gridcell,
             r = self.dimensions.rows, c = self.dimensions.columns,
             l = r*c, cells, val, v, $cells = self.cells
         ;
-        
+
         // fix prev grid format
         if ( !grid[HAS]('cells') )
         {
@@ -663,7 +663,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             grid.subrows = grid.subRows; delete grid.subRows;
             grid.subcols = grid.subColumns; delete grid.subColumns;
         }
-        
+
         cells = grid.cells;
         if ( l === cells.length )
         {
@@ -671,13 +671,13 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             self.difficulty = grid.difficulty || 1;
             if ( grid[HAS]('alphabet') )
                 self.alphabet = grid.alphabet.join ? grid.alphabet.join('') : (''+grid.alphabet);
-            else if ( !self.alphabet ) 
+            else if ( !self.alphabet )
                 self.alphabet = getRange(c,{start:1}).join('');
-            
+
             // set on grid
             for (i=0; i<l; i++)
             {
-                cell = cells[ i ]; v = val[cell.index]; 
+                cell = cells[ i ]; v = val[cell.index];
                 if ( "string" !== typeof v ) v = self.alphabet.charAt( v );
                 $gridcell = $cells.eq( i ); gridcell = $gridcell[ 0 ]; digit = gridcell.firstChild;
                 digit.solution = v;
@@ -685,7 +685,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
                 gridcell.column = cell.col;
                 gridcell.square = cell.squ;
                 gridcell.clue = !!cell.clue;
-                if ( gridcell.clue ) 
+                if ( gridcell.clue )
                 {
                     gridcell.cellType = CLUE;
                     digit.readOnly = true;
@@ -712,7 +712,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         update_notes( self );
         return self;
     },
-    
+
     importTpl: function( jsonTpl ) {
         var self = this;
         if ( jsonTpl && jsonTpl[HAS]("dimensions") )
@@ -722,9 +722,9 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         }
         return self;
     },
-    
+
     exportTpl: function( ) {
-        var self = this, 
+        var self = this,
             tpl = self.$super('exportTpl');
         if ( tpl ) tpl["dichromia"] = !!self.dichromia;
         return tpl;

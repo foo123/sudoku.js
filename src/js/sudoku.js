@@ -5,13 +5,13 @@
 *   @dependencies: Classy.js, PublishSubscribe, Asynchronous.js, jQuery
 *
 *   Sudoku Builder in JavaScript
-*   http://nikos-web-development.netai.net/
+*   https://foo123.github.io/
 *
 *   (light-weight and scaled-down version of CrossWord.js, professional Crossword Builder in JavaScript, by same author)
 *
 **/
 "use strict";
-var 
+var
 Sudoku = { }
 ,_jQuery_ = ('function' === typeof jQuery ? jQuery : function( ){ })
 ,_Asynchronous_ = ('function' === typeof Asynchronous ? Asynchronous : {isThread: function(){return false;}, path: function(){return {file:null, path:null};}})
@@ -19,12 +19,12 @@ Sudoku = { }
 !function(Sudoku, Classy, PublishSubscribe, Asynchronous, $, undef) {
 "use strict";
 
-var PROTO = "prototype", HAS = 'hasOwnProperty'
+var PROTO = "prototype", HAS = 'hasOwnProperty', stdMath = Math
     ,OP = Object[PROTO], AP = Array[PROTO], FP = Function[PROTO]
-    ,round = Math.round, rand = Math.random
-    
+    ,round = stdMath.round, rand = stdMath.random
+
     ,rnd = function( m, M ) { return round( (M-m)*rand() + m ); }
-    
+
     ,array = function( n ) { return new Array(n); }
     // adapted from https://github.com/foo123/Abacus
     ,n_array = function n_array( dims ) {
@@ -37,7 +37,7 @@ var PROTO = "prototype", HAS = 'hasOwnProperty'
     ,range = function range( n, options, shuffled )  {
         var range, i;
         options = options || {};
-        if ( options[HAS]('alphabet') && (n === options.alphabet.length) ) 
+        if ( options[HAS]('alphabet') && (n === options.alphabet.length) )
         {
             // string passed as alphabet, make array
             if ( alphabet.substr && alphabet.split ) range = alphabet.split("");
@@ -74,7 +74,7 @@ var PROTO = "prototype", HAS = 'hasOwnProperty'
         {
         if ( q && f.call(ref, a[0]) ) fv.push(a[0]);
         for (i=q; i<r; i+=2)
-        { 
+        {
             if ( f.call(ref, a[i  ]) ) fv.push(a[i  ]);
             if ( f.call(ref, a[i+1]) ) fv.push(a[i+1]);
         }
@@ -102,7 +102,7 @@ var PROTO = "prototype", HAS = 'hasOwnProperty'
         {
         if ( q && f(a[0]) ) fv.push(a[0]);
         for (i=q; i<r; i+=2)
-        { 
+        {
             if ( f(a[i  ]) ) fv.push(a[i  ]);
             if ( f(a[i+1]) ) fv.push(a[i+1]);
         }
@@ -134,11 +134,11 @@ var PROTO = "prototype", HAS = 'hasOwnProperty'
         ac = true === copied ? a.slice() : a;
         N = ac.length;
         while ( N-- )
-        { 
-            perm = rnd( 0, N ); 
-            swap = ac[ N ]; 
-            ac[ N ] = ac[ perm ]; 
-            ac[ perm ] = swap; 
+        {
+            perm = rnd( 0, N );
+            swap = ac[ N ];
+            ac[ N ] = ac[ perm ];
+            ac[ perm ] = swap;
         }
         // in-place or copy
         return ac;
@@ -190,43 +190,43 @@ var PROTO = "prototype", HAS = 'hasOwnProperty'
         }
         N = inc.length;
         while ( N-- )
-        { 
-            perm = rnd( 0, N ); 
-            swap = ac[ inc[N] ]; 
-            ac[ inc[N] ] = ac[ inc[perm] ]; 
-            ac[ inc[perm] ] = swap; 
+        {
+            perm = rnd( 0, N );
+            swap = ac[ inc[N] ];
+            ac[ inc[N] ] = ac[ inc[perm] ];
+            ac[ inc[perm] ] = swap;
         }
         // in-place or copy
         return ac;
     }
-    
+
     ,clamp = function( v, m, M ) {
         return ( v < m ) ? m : ((v > M) ? M : v);
     }
-    
+
     ,_UUID = 0
 ;
-    
-Classy.Merge( Sudoku, { 
-    
+
+Classy.Merge( Sudoku, {
+
     VERSION: "@@VERSION@@"
-    
+
     // dependencies
     ,Class: Classy.Class
     ,StaticClass: function( C ) { return Classy.Class(Classy.STATIC, C); }
     ,Asynchronous: Asynchronous
     ,PublishSubscribe: PublishSubscribe
     ,$: $
-    
+
     ,isWorker: Asynchronous.isThread( null, true )
     ,Path: Asynchronous.path( ModuleFactory__Sudoku.moduleUri )
-    
+
     ,UUID: function( NS ) {
         return [NS||'pzl', ++_UUID, new Date().getTime()].join('_');
     }
-    
+
     ,LOCALE: { }
-    
+
     ,setLocale: function( locales ) {
         if ( locales )
         {
@@ -236,15 +236,15 @@ Classy.Merge( Sudoku, {
             }
         }
     }
-    
+
     ,clearLocale: function( ) {
         Sudoku.LOCALE = { };
     }
-    
+
     ,locale: function( key ) {
         return key && Sudoku.LOCALE[HAS]( key ) ? Sudoku.LOCALE[ key ] : key;
     }
-    
+
     // utilities
     ,array: array
     ,n_array: n_array
