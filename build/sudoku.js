@@ -2894,8 +2894,8 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         else if ((opts && (null != opts.clues[si][sj][i*sc+j])) || (!opts && (null != squares[si][sj][i*sc+j]))) return random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj, i, j+1, vals, opts);
         if (true === vals) vals = array_list(shuffle(range(c)));
         var index = i*sc+j, row = si*sr+i, col = sj*sc+j, squ = si*sr+sj,
-            v = vals, n, m, solutions = (opts ? opts.solutions : 0) || 0,
-            new_opts = opts ? {solutions:solutions, clues:opts.clues} : null;
+            v = vals, n, m, solutions = 0,
+            new_opts = opts ? {solutions:opts.solutions, clues:opts.clues} : null;
         while (v)
         {
             n = v.val; m = (1 << n);
@@ -2909,20 +2909,9 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
             if (v.next) v.next.prev = v.prev;
             if (random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj, i, j+1, vals, new_opts))
             {
-                if (0 === solutions)
-                {
-                    squares[si][sj][index] = n;
-                    solutions = 1;
-                }
-                else
-                {
-                    ++solutions;
-                }
-                if (new_opts)
-                {
-                    opts.solutions = stdMath.max(solutions, new_opts.solutions);
-                    new_opts.solutions = 1;
-                }
+                if (!solutions && (!opts || !opts.solutions)) squares[si][sj][index] = n;
+                ++solutions;
+                if (opts) opts.solutions = stdMath.max(solutions, opts.solutions, new_opts.solutions);
                 if (!opts || (1 < opts.solutions)) return true;
             }
             m = ~m; rows[row] &= m; cols[col] &= m; squs[squ] &= m;

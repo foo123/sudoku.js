@@ -461,7 +461,7 @@ h1 {
 
 <section id="panel" class="fluid col-1-1" style="margin-top:40px;padding:10px;">
 <div class="fluid col-1-1 text-center" style="margin-bottom:12px"><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DP8WED9XW9TAE" class="donate">donate</a></div>
-<div class="fluid col-1-1 text-center"><button class="button" id="new_game" mv-evt mv-on-click="new_game">New Game</button> <button class="button" id="solve_custom" mv-evt mv-on-click="solve_custom">Custom</button>
+<div class="fluid col-1-1 text-center"><button class="button" id="new_game" mv-evt mv-on-click="new_game">New Game</button> <button class="button" id="solve_custom" mv-evt mv-on-click="solve_custom">Solve Custom</button>
 <div id="msg" style="padding-top:4px;font-size:12px;"></div></div>
 <div id="grid" class="fluid col-1-1" style="padding-top:10px;"></div>
 <div class="ui-delayable-overlay"><div class="ui-spinner ui-spinner-dots"></div></div>
@@ -746,7 +746,7 @@ $(function() {
                     prev_renderer = renderer,
                     dimension = model.get('type'),
                     btn = $('#solve_custom').text();
-                if ('Custom' === btn)
+                if ('Solve Custom' === btn)
                 {
                     if (4 === dimension)
                     {
@@ -785,7 +785,7 @@ $(function() {
                     $panel.addClass('ui-delayed').removeClass('ui-undelayed');
                     solve_sudoku(function(puzzle, compiler) {
                         $('#msg').html('');
-                        $('#solve_custom').text('Custom');
+                        $('#solve_custom').text('Solve Custom');
                         $panel.addClass('ui-undelayed').removeClass('ui-delayed');
                     }, puzzle.markFilledCellsAsClues());
                 }
@@ -797,7 +797,7 @@ $(function() {
                     dimension = model.get('type'),
                     difficulty = model.get('difficulty'),
                     symmetry = model.get('symmetry');
-                $('#solve_custom').text('Custom');
+                $('#solve_custom').text('Solve Custom');
                 $('#msg').html('');
                 if (4 === dimension)
                 {
