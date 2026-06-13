@@ -6,63 +6,63 @@
 !function(Sudoku, undef) {
 "use strict";
 
-var HAS = 'hasOwnProperty',
+var HAS = Object.prototype.hasOwnProperty,
     fromJSON = JSON.parse,
     transformProperty = null,
 
     // http://davidwalsh.name/add-rules-stylesheets
-    addCSSRule = function( style, selector, rules, index ) {
-        if ( "insertRule" in style.sheet )
+    addCSSRule = function(style, selector, rules, index) {
+        if ("insertRule" in style.sheet)
         {
-            style.sheet.insertRule( selector + "{" + rules + "}", index );
-            return style.sheet.cssRules[ index ];
+            style.sheet.insertRule(selector + "{" + rules + "}", index);
+            return style.sheet.cssRules[index];
         }
-        else if ( "addRule" in style.sheet )
+        else if ("addRule" in style.sheet)
         {
-            style.sheet.addRule( selector, rules, index );
-            return style.sheet.rules[ index ];
+            style.sheet.addRule(selector, rules, index);
+            return style.sheet.rules[index];
         }
     },
 
-    addCSS = function( style, css ) {
-        if ( "object" === typeof css )
+    addCSS = function(style, css) {
+        if ("object" === typeof css)
         {
             var n, declaration, i = 0;
             for (n in css)
             {
-                if ( css[HAS](n) )
+                if (HAS.call(css, n))
                 {
-                    declaration = css[ n ];
-                    declaration.css = addCSSRule( style, declaration.selector, [].concat(declaration.rules).join('; '), i++ );
+                    declaration = css[n];
+                    declaration.css = addCSSRule(style, declaration.selector, [].concat(declaration.rules).join('; '), i++);
                 }
             }
         }
         return css;
     },
 
-    getCSS = function( style ) {
+    getCSS = function(style) {
         var css = [], sheet = style.sheet, i,
             rules = sheet.cssRules ? sheet.cssRules : sheet.rules;
-        for (i=0; i<rules.length; i++) css.push(rules[i].cssText ? rules[i].cssText : rules.style.cssText);
+        for (i=0; i<rules.length; ++i) css.push(rules[i].cssText ? rules[i].cssText : rules.style.cssText);
         return css.join("\n");
     },
 
-    createStyleSheet = function( media, css ) {
+    createStyleSheet = function(media, css) {
         // Create the <style> tag
         var style = document.createElement("style");
         // Add a media (and/or media query) here if you'd like!
         style.setAttribute("media", media || "all");
         style.setAttribute("type", "text/css");
         // WebKit hack :(
-        style.appendChild( document.createTextNode("") );
+        style.appendChild(document.createTextNode(""));
         // Add the <style> element to the page
-        document.head.appendChild( style );
-        if ( css ) addCSS( style, css );
+        document.head.appendChild(style);
+        if (css) addCSS(style, css);
         return style;
     },
 
-    disposeStyleSheet = function( style ) {
-        if ( style ) document.head.removeChild( style );
+    disposeStyleSheet = function(style) {
+        if (style) document.head.removeChild(style);
     },
 
     Factory;
@@ -71,24 +71,24 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
 
     GRIDS: {}
 
-    ,getGrid: function( type ) {
-        type = type ? type.toUpperCase( ) : null;
-        if ( !!type && Factory.GRIDS[HAS](type) ) return new Factory.GRIDS[ type ]( );
+    ,getGrid: function(type) {
+        type = type ? type.toUpperCase() : null;
+        if (!!type && HAS.call(Factory.GRIDS, type)) return new Factory.GRIDS[type]();
         return null;
     }
 
-    ,getCompiler: function( grid ) {
-        if ( Sudoku.Compiler && grid )
+    ,getCompiler: function(grid) {
+        if (Sudoku.Compiler && grid)
         {
-            if ( 'SUDOKU' === grid.type && Sudoku.SudokuCompiler )
-                return new Sudoku.SudokuCompiler( grid );
+            if ('SUDOKU' === grid.type && Sudoku.SudokuCompiler)
+                return new Sudoku.SudokuCompiler(grid);
         }
         return null;
     }
 
-    ,importTpl: function( jsonTpl/*, options*/ ) {
-        var sudoku = Factory.getGrid( jsonTpl ? (jsonTpl.type || null) : null ) || null;
-        if ( sudoku ) sudoku.importTpl( jsonTpl/*, options || {}*/ );
+    ,importTpl: function(jsonTpl/*, options*/) {
+        var sudoku = Factory.getGrid(jsonTpl ? (jsonTpl.type || null) : null) || null;
+        if (sudoku) sudoku.importTpl(jsonTpl/*, options || {}*/);
         return sudoku;
     }
 
@@ -100,8 +100,8 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
 
     ,getCSS: getCSS
 
-    ,getTransformProperty: function( el ) {
-        if ( !transformProperty )
+    ,getTransformProperty: function(el) {
+        if (!transformProperty)
         {
             var style = el.style,
                 suffix = "Transform",
@@ -116,11 +116,11 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
             ;
 
             // test different vendor prefixes of these properties
-            while ( i-- )
+            while (i--)
             {
-                if ( style[HAS](testProperties[ i ]) )
+                if (HAS.call(style, testProperties[i]))
                 {
-                    transformProperty = testProperties[ i ];
+                    transformProperty = testProperties[i];
                     break;
                 }
             }
@@ -128,42 +128,42 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
         return transformProperty;
     }
 
-    ,getElement: function( element ) {
+    ,getElement: function(element) {
         element = element || 'div';
         var tag, id, className, el,
             idPos = element.indexOf('#'),
             classPos = element.indexOf('.')
         ;
 
-        if ( idPos > -1 )
+        if (idPos > -1)
         {
-            tag = element.slice( 0, idPos );
-            element = element.slice( idPos );
+            tag = element.slice(0, idPos);
+            element = element.slice(idPos);
             classPos -= idPos;
         }
-        else if ( classPos > -1 )
+        else if (classPos > -1)
         {
-            tag = element.slice( 0, classPos );
-            element = element.slice( classPos );
+            tag = element.slice(0, classPos);
+            element = element.slice(classPos);
         }
         else tag = element;
-        if ( '#' === element.charAt(0) )
+        if ('#' === element.charAt(0))
         {
-            if ( classPos > -1 )
+            if (classPos > -1)
             {
-                id = element.slice( 1, classPos );
-                element = element.slice( classPos );
+                id = element.slice(1, classPos);
+                element = element.slice(classPos);
             }
             else
             {
-                id = element.slice( 1 );
+                id = element.slice(1);
             }
         }
         else id = null;
-        if ( '.' === element.charAt(0) ) className = element.slice( 1 ).split('.').join(' ');
+        if ('.' === element.charAt(0)) className = element.slice(1).split('.').join(' ');
         else className = null;
         el = document.createElement(tag.length ? tag : 'div');
-        if ( id ) el.id = id; if ( className ) el.className = className;
+        if (id) el.id = id; if (className) el.className = className;
         return el;
     }
 });

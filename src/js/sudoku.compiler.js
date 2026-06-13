@@ -4,7 +4,7 @@
 * Finds solutions for a given crossword/puzzle Grid
 *
 **/
-!function(Sudoku, undef){
+!function(Sudoku, undef) {
 "use strict";
 
 //
@@ -29,10 +29,10 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
         }
     },
 
-    constructor: function( component ) {
+    constructor: function(component) {
         var self = this;
-        self.$super( 'constructor', 100/*, false*/ );
-        self.initPubSub( );
+        self.$super('constructor', 100/*, false*/);
+        self.initPubSub();
         self.component = component || 'Sudoku.Compiler';
         self.cutoff_mode = Compiler.MODE.AUTO;
         self.status = Compiler.STATUS.INIT;
@@ -51,10 +51,10 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     MIN_ALTERNATIVES: 2,
     _NUM_ALTERNATIVES: 5,
 
-    dispose: function( ) {
+    dispose: function() {
         var self = this;
-        self.$super( 'dispose' );
-        self.disposePubSub( );
+        self.$super('dispose');
+        self.disposePubSub();
         self.component = null;
         self.grid = null;
         self.status = null;
@@ -65,40 +65,40 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
         return self;
     },
 
-    fork: function( ) {
+    fork: function() {
         var self = this;
-        self.unfork( true ).$super( 'fork', self.component, Sudoku.Path.file );
+        self.unfork(true).$super('fork', self.component, Sudoku.Path.file);
         return self;
     },
 
-    stop: function( explicit ) {
+    stop: function(explicit) {
         var self = this, delay = 500;
-        if ( self.$thread )
+        if (self.$thread)
         {
-            self.send( 'stop' );
-            if ( true === explicit ) setTimeout(function(){self.unfork(true);}, delay);
+            self.send('stop');
+            if (true === explicit) setTimeout(function() {self.unfork(true);}, delay);
         }
-        if ( self.$queue.length ) self.empty( );
+        if (self.$queue.length) self.empty();
         return self;
     },
 
-    setGrid: function( grid ) {
-        if ( grid ) this.grid = grid;
+    setGrid: function(grid) {
+        if (grid) this.grid = grid;
         return this;
     },
 
     // @override
-    setSolution: function( ) {
+    setSolution: function() {
         return this;
     },
 
     // @override
-    clearSolution: function( ) {
+    clearSolution: function() {
         return this;
     },
 
     // @override
-    compile: function( ) {
+    compile: function() {
         return this;
     }
 });

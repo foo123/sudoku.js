@@ -1,7 +1,7 @@
 /**
 *
 *   Sudoku.js
-*   @version: 1.0.0
+*   @version: 1.1.0
 *   @dependencies: Classy.js, PublishSubscribe, Asynchronous.js, jQuery
 *
 *   Sudoku Builder in JavaScript
@@ -27,7 +27,7 @@ else if ( !(name in root) ) /* Browser/WebWorker/.. */
 /**
 *
 *   Sudoku.js
-*   @version: 1.0.0
+*   @version: 1.1.0
 *   @dependencies: Classy.js, PublishSubscribe, Asynchronous.js, jQuery
 *
 *   Sudoku Builder in JavaScript
@@ -38,133 +38,133 @@ else if ( !(name in root) ) /* Browser/WebWorker/.. */
 **/
 "use strict";
 var
-Sudoku = { }
-,_jQuery_ = ('function' === typeof jQuery ? jQuery : function( ){ })
-,_Asynchronous_ = ('function' === typeof Asynchronous ? Asynchronous : {isThread: function(){return false;}, path: function(){return {file:null, path:null};}})
+Sudoku = {}
+,_jQuery_ = ('function' === typeof jQuery ? jQuery : function() {})
+,_Asynchronous_ = ('function' === typeof Asynchronous ? Asynchronous : {isThread: function() {return false;}, path: function() {return {file:null, path:null};}})
 ;
 !function(Sudoku, Classy, PublishSubscribe, Asynchronous, $, undef) {
 "use strict";
 
-var PROTO = "prototype", HAS = 'hasOwnProperty', stdMath = Math
+var PROTO = "prototype", stdMath = Math
     ,OP = Object[PROTO], AP = Array[PROTO], FP = Function[PROTO]
-    ,round = stdMath.round, rand = stdMath.random
+    ,HAS = OP.hasOwnProperty, round = stdMath.round, rand = stdMath.random
 
-    ,rnd = function( m, M ) { return round( (M-m)*rand() + m ); }
+    ,rnd = function(m, M) {return round((M-m)*rand() + m);}
 
-    ,array = function( n ) { return new Array(n); }
+    ,array = function(n) {return new Array(n);}
     // adapted from https://github.com/foo123/Abacus
-    ,n_array = function n_array( dims ) {
-        var len = dims.shift( ),
-            a = len ? new Array( len ) : [ ], i
+    ,n_array = function n_array(dims) {
+        var len = dims.shift(),
+            a = len ? new Array(len) : [], i
         ;
-        if ( dims.length ) for (i=0; i<len; i++) a[ i ] = n_array( dims.slice(0) );
+        if (dims.length) for (i=0; i<len; ++i) a[i] = n_array(dims.slice(0));
         return a;
     }
-    ,range = function range( n, options, shuffled )  {
+    ,range = function range(n, options, shuffled)  {
         var range, i;
         options = options || {};
-        if ( options[HAS]('alphabet') && (n === options.alphabet.length) )
+        if (HAS.call(options, 'alphabet') && (n === options.alphabet.length))
         {
             // string passed as alphabet, make array
-            if ( alphabet.substr && alphabet.split ) range = alphabet.split("");
+            if (alphabet.substr && alphabet.split) range = alphabet.split("");
             else range = alphabet.slice();
         }
         else
         {
-            range = new Array( n );
-            if ( options[HAS]('value') )
+            range = new Array(n);
+            if (HAS.call(options, 'value'))
             {
                 var v = options.value, is_arr_str = !!v.slice;
-                for (i=0; i<n; i++) {range[ i ] = is_arr_str ? v.slice() : v;}
+                for (i=0; i<n; ++i) {range[i] = is_arr_str ? v.slice() : v;}
             }
             else
             {
-                var start = options[HAS]('start') ? parseInt(options.start, 10) : 0,
-                    step = options[HAS]('step') ? parseInt(options.step, 10) : 1,
+                var start = HAS.call(options, 'start') ? parseInt(options.start, 10) : 0,
+                    step = HAS.call(options, 'step') ? parseInt(options.step, 10) : 1,
                     istep = 0;
-                for (i=0; i<n; i++) {range[ i ] = istep+start; istep += step;}
+                for (i=0; i<n; ++i) {range[i] = istep+start; istep += step;}
             }
         }
-        if ( true === shuffled ) range = shuffle( range );
+        if (true === shuffled) range = shuffle(range);
         return range;
     }
-    ,operate = function operate( a, f, f0 ) {
+    ,operate = function operate(a, f, f0) {
         var i, l=a.length, r=l&15, q=r&1, fv=q?f(f0,a[0]):f0;
         for (i=q; i<r; i+=2)  fv = f(f(fv,a[i]),a[i+1]);
         for (i=r; i<l; i+=16) fv = f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(fv,a[i]),a[i+1]),a[i+2]),a[i+3]),a[i+4]),a[i+5]),a[i+6]),a[i+7]),a[i+8]),a[i+9]),a[i+10]),a[i+11]),a[i+12]),a[i+13]),a[i+14]),a[i+15]);
         return fv;
     }
-    ,filter = function filter( a, f, ref ) {
+    ,filter = function filter(a, f, ref) {
         var i, l=a.length, r=l&15, q=r&1, fv=[];
-        if ( arguments.length > 2 )
+        if (arguments.length > 2)
         {
         if ( q && f.call(ref, a[0]) ) fv.push(a[0]);
         for (i=q; i<r; i+=2)
         {
-            if ( f.call(ref, a[i  ]) ) fv.push(a[i  ]);
-            if ( f.call(ref, a[i+1]) ) fv.push(a[i+1]);
+            if (f.call(ref, a[i  ])) fv.push(a[i  ]);
+            if (f.call(ref, a[i+1])) fv.push(a[i+1]);
         }
         for (i=r; i<l; i+=16)
         {
-            if ( f.call(ref, a[i  ]) ) fv.push(a[i  ]);
-            if ( f.call(ref, a[i+1]) ) fv.push(a[i+1]);
-            if ( f.call(ref, a[i+2]) ) fv.push(a[i+2]);
-            if ( f.call(ref, a[i+3]) ) fv.push(a[i+3]);
-            if ( f.call(ref, a[i+4]) ) fv.push(a[i+4]);
-            if ( f.call(ref, a[i+5]) ) fv.push(a[i+5]);
-            if ( f.call(ref, a[i+6]) ) fv.push(a[i+6]);
-            if ( f.call(ref, a[i+7]) ) fv.push(a[i+7]);
-            if ( f.call(ref, a[i+8]) ) fv.push(a[i+8]);
-            if ( f.call(ref, a[i+9]) ) fv.push(a[i+9]);
-            if ( f.call(ref, a[i+10]) ) fv.push(a[i+10]);
-            if ( f.call(ref, a[i+11]) ) fv.push(a[i+11]);
-            if ( f.call(ref, a[i+12]) ) fv.push(a[i+12]);
-            if ( f.call(ref, a[i+13]) ) fv.push(a[i+13]);
-            if ( f.call(ref, a[i+14]) ) fv.push(a[i+14]);
-            if ( f.call(ref, a[i+15]) ) fv.push(a[i+15]);
+            if (f.call(ref, a[i  ])) fv.push(a[i  ]);
+            if (f.call(ref, a[i+1])) fv.push(a[i+1]);
+            if (f.call(ref, a[i+2])) fv.push(a[i+2]);
+            if (f.call(ref, a[i+3])) fv.push(a[i+3]);
+            if (f.call(ref, a[i+4])) fv.push(a[i+4]);
+            if (f.call(ref, a[i+5])) fv.push(a[i+5]);
+            if (f.call(ref, a[i+6])) fv.push(a[i+6]);
+            if (f.call(ref, a[i+7])) fv.push(a[i+7]);
+            if (f.call(ref, a[i+8])) fv.push(a[i+8]);
+            if (f.call(ref, a[i+9])) fv.push(a[i+9]);
+            if (f.call(ref, a[i+10])) fv.push(a[i+10]);
+            if (f.call(ref, a[i+11])) fv.push(a[i+11]);
+            if (f.call(ref, a[i+12])) fv.push(a[i+12]);
+            if (f.call(ref, a[i+13])) fv.push(a[i+13]);
+            if (f.call(ref, a[i+14])) fv.push(a[i+14]);
+            if (f.call(ref, a[i+15])) fv.push(a[i+15]);
         }
         }
         else
         {
-        if ( q && f(a[0]) ) fv.push(a[0]);
+        if (q && f(a[0])) fv.push(a[0]);
         for (i=q; i<r; i+=2)
         {
-            if ( f(a[i  ]) ) fv.push(a[i  ]);
-            if ( f(a[i+1]) ) fv.push(a[i+1]);
+            if (f(a[i  ])) fv.push(a[i  ]);
+            if (f(a[i+1])) fv.push(a[i+1]);
         }
         for (i=r; i<l; i+=16)
         {
-            if ( f(a[i  ]) ) fv.push(a[i  ]);
-            if ( f(a[i+1]) ) fv.push(a[i+1]);
-            if ( f(a[i+2]) ) fv.push(a[i+2]);
-            if ( f(a[i+3]) ) fv.push(a[i+3]);
-            if ( f(a[i+4]) ) fv.push(a[i+4]);
-            if ( f(a[i+5]) ) fv.push(a[i+5]);
-            if ( f(a[i+6]) ) fv.push(a[i+6]);
-            if ( f(a[i+7]) ) fv.push(a[i+7]);
-            if ( f(a[i+8]) ) fv.push(a[i+8]);
-            if ( f(a[i+9]) ) fv.push(a[i+9]);
-            if ( f(a[i+10]) ) fv.push(a[i+10]);
-            if ( f(a[i+11]) ) fv.push(a[i+11]);
-            if ( f(a[i+12]) ) fv.push(a[i+12]);
-            if ( f(a[i+13]) ) fv.push(a[i+13]);
-            if ( f(a[i+14]) ) fv.push(a[i+14]);
-            if ( f(a[i+15]) ) fv.push(a[i+15]);
+            if (f(a[i  ])) fv.push(a[i  ]);
+            if (f(a[i+1])) fv.push(a[i+1]);
+            if (f(a[i+2])) fv.push(a[i+2]);
+            if (f(a[i+3])) fv.push(a[i+3]);
+            if (f(a[i+4])) fv.push(a[i+4]);
+            if (f(a[i+5])) fv.push(a[i+5]);
+            if (f(a[i+6])) fv.push(a[i+6]);
+            if (f(a[i+7])) fv.push(a[i+7]);
+            if (f(a[i+8])) fv.push(a[i+8]);
+            if (f(a[i+9])) fv.push(a[i+9]);
+            if (f(a[i+10])) fv.push(a[i+10]);
+            if (f(a[i+11])) fv.push(a[i+11]);
+            if (f(a[i+12])) fv.push(a[i+12]);
+            if (f(a[i+13])) fv.push(a[i+13]);
+            if (f(a[i+14])) fv.push(a[i+14]);
+            if (f(a[i+15])) fv.push(a[i+15]);
         }
         }
         return fv;
     }
     // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-    ,shuffle = function shuffle( a, copied ) {
+    ,shuffle = function shuffle(a, copied) {
         var N, perm, swap, ac;
         ac = true === copied ? a.slice() : a;
         N = ac.length;
-        while ( N-- )
+        while (N--)
         {
-            perm = rnd( 0, N );
-            swap = ac[ N ];
-            ac[ N ] = ac[ perm ];
-            ac[ perm ] = swap;
+            perm = rnd(0, N);
+            swap = ac[N];
+            ac[N] = ac[perm];
+            ac[perm] = swap;
         }
         // in-place or copy
         return ac;
@@ -172,42 +172,42 @@ var PROTO = "prototype", HAS = 'hasOwnProperty', stdMath = Math
     // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
     // variation to shuffle only parts of array
     // while leaving other parts unaltered
-    ,shufflex = function shufflex( a, o, copied ) {
+    ,shufflex = function shufflex(a, o, copied) {
         var i, j, N, perm, swap, inc, ac;
         ac = true === copied ? a.slice() : a;
         o = o || {};
-        if ( o[HAS]('included') && o.included.length )
+        if (HAS.call(o, 'included') && o.included.length)
         {
             inc = o.included;
         }
-        else if ( o[HAS]('included_range') && o.included_range.length )
+        else if (HAS.call(o, 'included_range') && o.included_range.length)
         {
             inc = []; i=0; j=0;
             while (i < a.length)
             {
-                if (j<o.included_range.length && (i>=o.included_range[j] && (j+1 >=o.included_range.length || i<=o.included_range[j+1]))) inc.push( i );
+                if (j<o.included_range.length && (i>=o.included_range[j] && (j+1 >=o.included_range.length || i<=o.included_range[j+1]))) inc.push(i);
                 else j+=2;
-                i++;
+                ++i;
             }
         }
-        else if ( o[HAS]('excluded') && o.excluded.length )
+        else if (HAS.call(o, 'excluded') && o.excluded.length)
         {
             inc = []; i=0; j=0;
             while (i < a.length)
             {
-                if (j>=o.excluded.length || i<o.excluded[j]) inc.push( i );
-                else j++;
-                i++;
+                if (j>=o.excluded.length || i<o.excluded[j]) inc.push(i);
+                else ++j;
+                ++i;
             }
         }
-        else if ( o[HAS]('excluded_range') && o.excluded_range.length )
+        else if (HAS.call(o, 'excluded_range') && o.excluded_range.length)
         {
             inc = []; i=0; j=0;
             while (i < a.length)
             {
                 if (j<o.excluded_range.length && i>=o.excluded_range[j]) {i = j+1<o.excluded_range.length ? o.excluded_range[j+1] : i; j+=2;}
-                else inc.push( i );
-                i++;
+                else inc.push(i);
+                ++i;
             }
         }
         else
@@ -215,60 +215,60 @@ var PROTO = "prototype", HAS = 'hasOwnProperty', stdMath = Math
             inc = [];
         }
         N = inc.length;
-        while ( N-- )
+        while (N--)
         {
-            perm = rnd( 0, N );
-            swap = ac[ inc[N] ];
-            ac[ inc[N] ] = ac[ inc[perm] ];
-            ac[ inc[perm] ] = swap;
+            perm = rnd(0, N);
+            swap = ac[inc[N]];
+            ac[inc[N]] = ac[inc[perm]];
+            ac[inc[perm]] = swap;
         }
         // in-place or copy
         return ac;
     }
 
-    ,clamp = function( v, m, M ) {
-        return ( v < m ) ? m : ((v > M) ? M : v);
+    ,clamp = function(v, m, M) {
+        return (v < m) ? m : ((v > M) ? M : v);
     }
 
     ,_UUID = 0
 ;
 
-Classy.Merge( Sudoku, {
+Classy.Merge(Sudoku, {
 
-    VERSION: "1.0.0"
+    VERSION: "1.1.0"
 
     // dependencies
     ,Class: Classy.Class
-    ,StaticClass: function( C ) { return Classy.Class(Classy.STATIC, C); }
+    ,StaticClass: function(C) {return Classy.Class(Classy.STATIC, C);}
     ,Asynchronous: Asynchronous
     ,PublishSubscribe: PublishSubscribe
     ,$: $
 
-    ,isWorker: Asynchronous.isThread( null, true )
-    ,Path: Asynchronous.path( ModuleFactory__Sudoku.moduleUri )
+    ,isWorker: Asynchronous.isThread(null, true)
+    ,Path: Asynchronous.path(ModuleFactory__Sudoku.moduleUri)
 
-    ,UUID: function( NS ) {
+    ,UUID: function(NS) {
         return [NS||'pzl', ++_UUID, new Date().getTime()].join('_');
     }
 
-    ,LOCALE: { }
+    ,LOCALE: {}
 
-    ,setLocale: function( locales ) {
-        if ( locales )
+    ,setLocale: function(locales) {
+        if (locales)
         {
             for (var key in locales )
             {
-                if ( locales[HAS](key) ) Sudoku.LOCALE[ key ] = locales[ key ];
+                if (HAS.call(locales, key)) Sudoku.LOCALE[key] = locales[key];
             }
         }
     }
 
-    ,clearLocale: function( ) {
-        Sudoku.LOCALE = { };
+    ,clearLocale: function() {
+        Sudoku.LOCALE = {};
     }
 
-    ,locale: function( key ) {
-        return key && Sudoku.LOCALE[HAS]( key ) ? Sudoku.LOCALE[ key ] : key;
+    ,locale: function(key) {
+        return key && HAS.call(Sudoku.LOCALE, key) ? Sudoku.LOCALE[key] : key;
     }
 
     // utilities
@@ -281,11 +281,11 @@ Classy.Merge( Sudoku, {
     ,shufflex: shufflex
     ,clamp: clamp
     ,randi: rnd
-    ,randf: function(m, M) { return (M-m)*rand() + m; }
-    ,randomItem: function( a ) { return a && a.length ? a[ rnd(0, a.length-1) ] : null; }
+    ,randf: function(m, M) {return (M-m)*rand() + m;}
+    ,randomItem: function(a) {return a && a.length ? a[rnd(0, a.length-1)] : null;}
 });
 
-}(Sudoku, Classy, PublishSubscribe, _Asynchronous_, _jQuery_ );/**
+}(Sudoku, Classy, PublishSubscribe, _Asynchronous_, _jQuery_);/**
 *
 * Sudoku.Factory Class
 *
@@ -293,63 +293,63 @@ Classy.Merge( Sudoku, {
 !function(Sudoku, undef) {
 "use strict";
 
-var HAS = 'hasOwnProperty',
+var HAS = Object.prototype.hasOwnProperty,
     fromJSON = JSON.parse,
     transformProperty = null,
 
     // http://davidwalsh.name/add-rules-stylesheets
-    addCSSRule = function( style, selector, rules, index ) {
-        if ( "insertRule" in style.sheet )
+    addCSSRule = function(style, selector, rules, index) {
+        if ("insertRule" in style.sheet)
         {
-            style.sheet.insertRule( selector + "{" + rules + "}", index );
-            return style.sheet.cssRules[ index ];
+            style.sheet.insertRule(selector + "{" + rules + "}", index);
+            return style.sheet.cssRules[index];
         }
-        else if ( "addRule" in style.sheet )
+        else if ("addRule" in style.sheet)
         {
-            style.sheet.addRule( selector, rules, index );
-            return style.sheet.rules[ index ];
+            style.sheet.addRule(selector, rules, index);
+            return style.sheet.rules[index];
         }
     },
 
-    addCSS = function( style, css ) {
-        if ( "object" === typeof css )
+    addCSS = function(style, css) {
+        if ("object" === typeof css)
         {
             var n, declaration, i = 0;
             for (n in css)
             {
-                if ( css[HAS](n) )
+                if (HAS.call(css, n))
                 {
-                    declaration = css[ n ];
-                    declaration.css = addCSSRule( style, declaration.selector, [].concat(declaration.rules).join('; '), i++ );
+                    declaration = css[n];
+                    declaration.css = addCSSRule(style, declaration.selector, [].concat(declaration.rules).join('; '), i++);
                 }
             }
         }
         return css;
     },
 
-    getCSS = function( style ) {
+    getCSS = function(style) {
         var css = [], sheet = style.sheet, i,
             rules = sheet.cssRules ? sheet.cssRules : sheet.rules;
-        for (i=0; i<rules.length; i++) css.push(rules[i].cssText ? rules[i].cssText : rules.style.cssText);
+        for (i=0; i<rules.length; ++i) css.push(rules[i].cssText ? rules[i].cssText : rules.style.cssText);
         return css.join("\n");
     },
 
-    createStyleSheet = function( media, css ) {
+    createStyleSheet = function(media, css) {
         // Create the <style> tag
         var style = document.createElement("style");
         // Add a media (and/or media query) here if you'd like!
         style.setAttribute("media", media || "all");
         style.setAttribute("type", "text/css");
         // WebKit hack :(
-        style.appendChild( document.createTextNode("") );
+        style.appendChild(document.createTextNode(""));
         // Add the <style> element to the page
-        document.head.appendChild( style );
-        if ( css ) addCSS( style, css );
+        document.head.appendChild(style);
+        if (css) addCSS(style, css);
         return style;
     },
 
-    disposeStyleSheet = function( style ) {
-        if ( style ) document.head.removeChild( style );
+    disposeStyleSheet = function(style) {
+        if (style) document.head.removeChild(style);
     },
 
     Factory;
@@ -358,24 +358,24 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
 
     GRIDS: {}
 
-    ,getGrid: function( type ) {
-        type = type ? type.toUpperCase( ) : null;
-        if ( !!type && Factory.GRIDS[HAS](type) ) return new Factory.GRIDS[ type ]( );
+    ,getGrid: function(type) {
+        type = type ? type.toUpperCase() : null;
+        if (!!type && HAS.call(Factory.GRIDS, type)) return new Factory.GRIDS[type]();
         return null;
     }
 
-    ,getCompiler: function( grid ) {
-        if ( Sudoku.Compiler && grid )
+    ,getCompiler: function(grid) {
+        if (Sudoku.Compiler && grid)
         {
-            if ( 'SUDOKU' === grid.type && Sudoku.SudokuCompiler )
-                return new Sudoku.SudokuCompiler( grid );
+            if ('SUDOKU' === grid.type && Sudoku.SudokuCompiler)
+                return new Sudoku.SudokuCompiler(grid);
         }
         return null;
     }
 
-    ,importTpl: function( jsonTpl/*, options*/ ) {
-        var sudoku = Factory.getGrid( jsonTpl ? (jsonTpl.type || null) : null ) || null;
-        if ( sudoku ) sudoku.importTpl( jsonTpl/*, options || {}*/ );
+    ,importTpl: function(jsonTpl/*, options*/) {
+        var sudoku = Factory.getGrid(jsonTpl ? (jsonTpl.type || null) : null) || null;
+        if (sudoku) sudoku.importTpl(jsonTpl/*, options || {}*/);
         return sudoku;
     }
 
@@ -387,8 +387,8 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
 
     ,getCSS: getCSS
 
-    ,getTransformProperty: function( el ) {
-        if ( !transformProperty )
+    ,getTransformProperty: function(el) {
+        if (!transformProperty)
         {
             var style = el.style,
                 suffix = "Transform",
@@ -403,11 +403,11 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
             ;
 
             // test different vendor prefixes of these properties
-            while ( i-- )
+            while (i--)
             {
-                if ( style[HAS](testProperties[ i ]) )
+                if (HAS.call(style, testProperties[i]))
                 {
-                    transformProperty = testProperties[ i ];
+                    transformProperty = testProperties[i];
                     break;
                 }
             }
@@ -415,42 +415,42 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
         return transformProperty;
     }
 
-    ,getElement: function( element ) {
+    ,getElement: function(element) {
         element = element || 'div';
         var tag, id, className, el,
             idPos = element.indexOf('#'),
             classPos = element.indexOf('.')
         ;
 
-        if ( idPos > -1 )
+        if (idPos > -1)
         {
-            tag = element.slice( 0, idPos );
-            element = element.slice( idPos );
+            tag = element.slice(0, idPos);
+            element = element.slice(idPos);
             classPos -= idPos;
         }
-        else if ( classPos > -1 )
+        else if (classPos > -1)
         {
-            tag = element.slice( 0, classPos );
-            element = element.slice( classPos );
+            tag = element.slice(0, classPos);
+            element = element.slice(classPos);
         }
         else tag = element;
-        if ( '#' === element.charAt(0) )
+        if ('#' === element.charAt(0))
         {
-            if ( classPos > -1 )
+            if (classPos > -1)
             {
-                id = element.slice( 1, classPos );
-                element = element.slice( classPos );
+                id = element.slice(1, classPos);
+                element = element.slice(classPos);
             }
             else
             {
-                id = element.slice( 1 );
+                id = element.slice(1);
             }
         }
         else id = null;
-        if ( '.' === element.charAt(0) ) className = element.slice( 1 ).split('.').join(' ');
+        if ('.' === element.charAt(0)) className = element.slice(1).split('.').join(' ');
         else className = null;
         el = document.createElement(tag.length ? tag : 'div');
-        if ( id ) el.id = id; if ( className ) el.className = className;
+        if (id) el.id = id; if (className) el.className = className;
         return el;
     }
 });
@@ -461,7 +461,7 @@ Factory = Sudoku.Factory = Sudoku.StaticClass({
 * Represents a (generic) crossword grid and the operations/user interactions performed on the grid
 *
 **/
-!function(Sudoku, undef){
+!function(Sudoku, undef) {
 "use strict";
 
 var stdMath = Math, floor = stdMath.floor, round = stdMath.round, ceil = stdMath.ceil,
@@ -476,103 +476,103 @@ var stdMath = Math, floor = stdMath.floor, round = stdMath.round, ceil = stdMath
     HORIZONTAL = 1, VERTICAL = 2,
     ERRORCLASS = "notvalid", HIGHLIGHTCLASS = "highlighted", FOCUSEDCLASS = 'cell-focused',
     HIDE_CLUES = "hide-clues", HIDE_SOLUTION = "hide-solution",
-    HAS = 'hasOwnProperty'
+    HAS = Object.prototype.hasOwnProperty
 ;
 
 // helpers
-function getRange( L, shuffled )
+function getRange(L, shuffled)
 {
-    var a = new Array( L ), i;
-    for (i=0; i<L; i++) a[ i ] = i;
-    if ( shuffled ) a = shuffle( a );
+    var a = new Array(L), i;
+    for (i=0; i<L; ++i) a[i] = i;
+    if (shuffled) a = shuffle(a);
     return a;
 }
 
-function cellInBounds( rows, columns )
+function cellInBounds(rows, columns)
 {
-    return function( ){var c = this; return !!( 0 <= c.row && c.row < rows && 0 <= c.column && c.column < columns );};
+    return function() {var c = this; return !!(0 <= c.row && c.row < rows && 0 <= c.column && c.column < columns);};
 }
 
-function isCell( ) { return CELL === this.cellType; }
+function isCell() {return CELL === this.cellType;}
 
-function isSeparatorCell( ) { return SEP === this.cellType; }
+function isSeparatorCell() {return SEP === this.cellType;}
 
-function highlightedCell( ) { return 0 < this.highlightType; }
+function highlightedCell() {return 0 < this.highlightType;}
 
-function isValidSolution( ) { return this.value === this.solution; }
+function isValidSolution() {return this.value === this.solution;}
 
-function revealCell( )
+function revealCell()
 {
     var i = this;
-    $(i).removeClass( ERRORCLASS );
+    $(i).removeClass(ERRORCLASS);
     i.value = i.solution || "";
     return i;
 }
 
-function clearCell( )
+function clearCell()
 {
     var c = this;
     c.firstChild.value = "";
     return c;
 }
 
-function clearErrors( )
+function clearErrors()
 {
     var i = this;
-    $(i).removeClass( ERRORCLASS );
-    if ( i.value !== i.solution ) i.value = "";
+    $(i).removeClass(ERRORCLASS);
+    if (i.value !== i.solution) i.value = "";
     return i;
 }
 
-function highlightErrors( )
+function highlightErrors()
 {
     var i = this, $i = $(i);
-    if ( i.value && i.value.length && i.solution )
+    if (i.value && i.value.length && i.solution)
     {
-        if ( i.solution === i.value )
-            $i.removeClass( ERRORCLASS );
-        else if ( !$i.hasClass( ERRORCLASS ) )
-            $i.addClass( ERRORCLASS );
+        if (i.solution === i.value)
+            $i.removeClass(ERRORCLASS);
+        else if (!$i.hasClass(ERRORCLASS))
+            $i.addClass(ERRORCLASS);
     }
     else
     {
-        $i.removeClass( ERRORCLASS );
+        $i.removeClass(ERRORCLASS);
     }
     return i;
 }
 
-function deHighlightErrors( )
+function deHighlightErrors()
 {
     var i = this;
-    $(i).removeClass( ERRORCLASS );
+    $(i).removeClass(ERRORCLASS);
     return i;
 }
 
-function highlightCell( )
+function highlightCell()
 {
     var c = this;
-    if ( c.highlightType <= 0 )
+    if (c.highlightType <= 0)
     {
         c.highlightType = 1;
-        $(c).addClass( HIGHLIGHTCLASS );
+        $(c).addClass(HIGHLIGHTCLASS);
     }
 }
 
-function deHighlightCell( )
+function deHighlightCell()
 {
     var c = this;
-    if ( c.highlightType > 0 )
+    if (c.highlightType > 0)
     {
         c.highlightType = 0;
-        $(c).removeClass( HIGHLIGHTCLASS );
+        $(c).removeClass(HIGHLIGHTCLASS);
     }
 }
 
-function toDefault( )
+function toDefault()
 {
     var c = this, $c = $(c);
     $c.removeClass('ui-selected default placeholder');
-    if ( IMAGE === c.cellType )
+    if (IMAGE === c.cellType)
     {
         c.cellType = CELL;
         $c.addClass('default');
@@ -580,88 +580,88 @@ function toDefault( )
     return c;
 }
 
-function moveCursor( $cell, code, nowrap, gc, rows, columns )
+function moveCursor($cell, code, nowrap, gc, rows, columns)
 {
     nowrap = !(nowrap || false);
-    var cell = $cell[ 0 ], $next, row = cell.row, column = cell.column;
+    var cell = $cell[0], $next, row = cell.row, column = cell.column;
 
-    if ( false === code )
+    if (false === code)
     {
         // get neighbor highlighted cell
-        $next = $cell.nextAll('.cell.default').filter( highlightedCell );
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        $next = $cell.nextAll('.cell.default').filter(highlightedCell);
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_UP === code )
+    else if (KEY_UP === code)
     {
         $next = $cell.prevAll('.cell.default.column-'+column);
-        while ( nowrap && !$next.length && column > 0 )
+        while (nowrap && !$next.length && column > 0)
         {
-            column--;
-            if ( column >= 0 )
+            --column;
+            if (column >= 0)
             {
                 $cell = gc.filter('.row-last.column-'+column);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.prevAll('.cell.default.column-'+column);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_DOWN === code )
+    else if (KEY_DOWN === code)
     {
         $next = $cell.nextAll('.cell.default.column-'+column);
-        while ( nowrap && !$next.length && column < columns )
+        while (nowrap && !$next.length && column < columns)
         {
-            column++;
-            if ( column < columns )
+            ++column;
+            if (column < columns)
             {
                 $cell = gc.filter('.row-first.column-'+column);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.nextAll('.cell.default.column-'+column);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_LEFT === code )
+    else if (KEY_LEFT === code)
     {
         $next = $cell.prevAll('.cell.default.row-'+row);
-        while ( nowrap && !$next.length && row > 0 )
+        while (nowrap && !$next.length && row > 0)
         {
-            row--;
-            if ( row >= 0 )
+            --row;
+            if (row >= 0)
             {
                 $cell = gc.filter('.column-last.row-'+row);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.prevAll('.cell.default.row-'+row);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_RIGHT === code )
+    else if (KEY_RIGHT === code)
     {
         $next = $cell.nextAll('.cell.default.row-'+row);
-        while ( nowrap && !$next.length && row < rows )
+        while (nowrap && !$next.length && row < rows)
         {
-            row++;
-            if ( row < rows )
+            ++row;
+            if (row < rows)
             {
                 $cell = gc.filter('.column-first.row-'+row);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.nextAll('.cell.default.row-'+row);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
     return $next;
 }
@@ -717,20 +717,20 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         moveCursor: moveCursor
     },
 
-    constructor: function( ) {
+    constructor: function() {
         var self = this;
         self.type = 'GRID';
-        self.id = UUID( );
+        self.id = UUID();
         self.selector = self.getSelector();
-        self.dimensions = self.getDefaultDimensions( );
-        self.styles = self.getDefaultStyles( );
-        self.cssStyles = self.getDefaultCssStyles( self.selector, self.styles, self.dimensions );
-        self.style = createStyleSheet( 'all', self.cssStyles );
+        self.dimensions = self.getDefaultDimensions();
+        self.styles = self.getDefaultStyles();
+        self.cssStyles = self.getDefaultCssStyles(self.selector, self.styles, self.dimensions);
+        self.style = createStyleSheet('all', self.cssStyles);
         self.grid = null;
         self.cells = null;
         self.cellInputs = null;
         self.userMode = false;
-        self.initPubSub( );
+        self.initPubSub();
     },
 
     type: null,
@@ -751,7 +751,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     userMode: false,
     highlightMode: false,
 
-    dispose: function( ) {
+    dispose: function() {
         var self = this;
         self.type = null;
         self.id = null;
@@ -766,33 +766,33 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         self.cells = null;
         self.styles = null;
         self.cssStyles = null;
-        disposeStyleSheet( self.style );
+        disposeStyleSheet(self.style);
         self.style = null;
-        if ( self.grid )
+        if (self.grid)
         {
             // http://stackoverflow.com/questions/768621/how-to-dispose-of-dom-elements-in-javascript-to-avoid-memory-leaks
-            self.setSelectable( false, true ).setResizable( false, true );
-            self.grid.off( );
-            self.grid.children( ).remove( );
-            self.grid.remove( );
+            self.setSelectable(false, true).setResizable(false, true);
+            self.grid.off();
+            self.grid.children().remove();
+            self.grid.remove();
         }
         self.grid = null;
-        self.disposePubSub( );
+        self.disposePubSub();
         return self;
     },
 
-    getCell: function( row, column ) {
+    getCell: function(row, column) {
         var index = arguments.length < 2 ? (row||0) : ((row || 0)*this.dimensions.columns + (column || 0));
-        return this.cells.eq( index );
+        return this.cells.eq(index);
     },
 
-    getRow: function( row, col1, col2 ) {
+    getRow: function(row, col1, col2) {
         var cols = this.dimensions.columns, r = (row||0)*cols;
         col1 = col1 || 0; col2 = col2 ? (col2+1) : cols;
-        return this.cells.slice( r+col1, r+col2 );
+        return this.cells.slice(r+col1, r+col2);
     },
 
-    getColumn: function( column, row1, row2 ) {
+    getColumn: function(column, row1, row2) {
         var self = this, cells = self.cells,
             rows = self.dimensions.rows, cols = self.dimensions.columns,
             r, rc, rc0, col = $([])
@@ -801,43 +801,43 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         row1 = row1 || 0;
         row2 = row2 || (rows-1);
         rc0 = row1*cols;
-        for (r=row1,rc=rc0; r<=row2; r++,rc+=cols)
-            col = col.add( cells.eq( rc + column ) );
+        for (r=row1,rc=rc0; r<=row2; ++r,rc+=cols)
+            col = col.add(cells.eq(rc + column));
         return col;
     },
 
-    getCells: function( row1, column1, row2, column2 ) {
+    getCells: function(row1, column1, row2, column2) {
         var self = this, cells, r, c, rc, rc0, gc = self.cells,
             columns = self.dimensions.columns, rows = self.dimensions.rows
         ;
-        if ( !arguments.length )
+        if (!arguments.length)
         {
-            return gc.slice( 0 );
+            return gc.slice(0);
         }
-        else if ( arguments.length < 2 )
+        else if (arguments.length < 2)
         {
             column1 = 0;
             row2 = rows-1;
             column2 = columns-1;
         }
-        else if ( arguments.length < 3 )
+        else if (arguments.length < 3)
         {
             row2 = rows-1;
             column2 = columns-1;
         }
-        else if ( arguments.length < 4 )
+        else if (arguments.length < 4)
         {
             column2 = columns-1;
         }
 
-        if ( row1 > row2 )
+        if (row1 > row2)
         {
             // swap
             rc = row1;
             row1 = row2;
             row2 = rc;
         }
-        if ( column1 > column2 )
+        if (column1 > column2)
         {
             // swap
             rc = column1;
@@ -854,23 +854,23 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
 
         cells = $([]);
         rc0 = row1*columns;
-        for (r=row1,rc=rc0; r<=row2; r++,rc+=columns)
+        for (r=row1,rc=rc0; r<=row2; ++r,rc+=columns)
         {
-            cells = cells.add( gc.slice( rc + column1, rc + column2 ) );
+            cells = cells.add(gc.slice(rc + column1, rc + column2));
         }
         return cells;
     },
 
-    getRange: function( cells ) {
+    getRange: function(cells) {
         var range, rm = Infinity, rM = -Infinity, cm = Infinity, cM = -Infinity;
-        if ( cells && cells.length )
+        if (cells && cells.length)
         {
-            cells.each(function( ) {
+            cells.each(function() {
                 var c = this, cr = c.row, cc = c.column;
-                if ( cr <= rm ) rm = cr;
-                if ( cr >= rM ) rM = cr;
-                if ( cc <= cm ) cm = cc;
-                if ( cc >= cM ) cM = cc;
+                if (cr <= rm) rm = cr;
+                if (cr >= rM) rM = cr;
+                if (cc <= cm) cm = cc;
+                if (cc >= cM) cM = cc;
             });
             range = [
                 {row: rm, column: cm},
@@ -887,46 +887,46 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return range;
     },
 
-    getCellInputs: function( ) {
+    getCellInputs: function() {
         var self = this;
-        if ( !self.cellInputs ) self.cellInputs = self.cells.filter( isCell ).children( 'input' );
+        if (!self.cellInputs) self.cellInputs = self.cells.filter(isCell).children('input');
         return self.cellInputs;
     },
 
-    setSelectable: function( enable, and_destroy ) {
+    setSelectable: function(enable, and_destroy) {
         var self = this, grid = self.grid, isAlreadyCreated, isAlreadySelectable;
 
-        if ( $.fn.selectable )
+        if ($.fn.selectable)
         {
-            if ( grid )
+            if (grid)
             {
                 isAlreadyCreated = /*grid.hasClass('ui-selectable') &&*/ !!grid.data('ui-selectable');
-                isAlreadySelectable = isAlreadyCreated ? !grid.selectable( 'option', 'disabled' ) : false;
-                if ( enable )
+                isAlreadySelectable = isAlreadyCreated ? !grid.selectable('option', 'disabled') : false;
+                if (enable)
                 {
-                    if ( !isAlreadyCreated )
+                    if (!isAlreadyCreated)
                     {
                         grid.selectable({
                             filter: '.cell',
                             autoRefresh: false
                         });
                     }
-                    else if ( isAlreadyCreated && !isAlreadySelectable )
+                    else if (isAlreadyCreated && !isAlreadySelectable)
                     {
-                        grid.selectable( 'option', 'disabled', false );
+                        grid.selectable('option', 'disabled', false);
                     }
                 }
                 else
                 {
-                    if ( and_destroy && isAlreadyCreated )
+                    if (and_destroy && isAlreadyCreated)
                     {
-                        grid.children( '.ui-selected' ).removeClass( 'ui-selected' );
-                        grid.selectable( 'destroy' );
+                        grid.children('.ui-selected').removeClass('ui-selected');
+                        grid.selectable('destroy');
                     }
-                    else if ( isAlreadySelectable && !and_destroy )
+                    else if (isAlreadySelectable && !and_destroy)
                     {
-                        grid.children( '.ui-selected' ).removeClass( 'ui-selected' );
-                        grid.selectable( 'option', 'disabled', true )
+                        grid.children('.ui-selected').removeClass('ui-selected');
+                        grid.selectable('option', 'disabled', true)
                                     .removeClass('ui-state-disabled')
                                     .attr('aria-disabled', "false")
                                 ;
@@ -937,28 +937,28 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return self;
     },
 
-    setResizable: function( enable, and_destroy ) {
+    setResizable: function(enable, and_destroy) {
         var self = this, grid = self.grid,
             isAlreadyResizable, isAlreadyCreated,
             disableSelectable, enableSelectable
         ;
 
-        if ( $.fn.resizable )
+        if ($.fn.resizable)
         {
-            if ( grid )
+            if (grid)
             {
                 isAlreadyCreated = /*grid.hasClass('ui-resizable') &&*/ !!grid.data('ui-resizable');
                 isAlreadyResizable = isAlreadyCreated ? !grid.resizable('option', 'disabled') : false;
 
-                if ( enable )
+                if (enable)
                 {
-                    if ( !isAlreadyCreated )
+                    if (!isAlreadyCreated)
                     {
-                        disableSelectable = function( ) {
-                            self.setSelectable( false );
+                        disableSelectable = function() {
+                            self.setSelectable(false);
                         };
-                        enableSelectable = function( ) {
-                            self.setSelectable( true );
+                        enableSelectable = function() {
+                            self.setSelectable(true);
                         };
 
                         grid/*.on('resizestart', startResize)
@@ -977,38 +977,38 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
                                 distance: 2,
                                 helper: "resizable-helper",
                                 grid: false,
-                                start: function( event, ui ) {
-                                    disableSelectable( );
+                                start: function(event, ui) {
+                                    disableSelectable();
                                     grid.addClass('resizing');
                                 },
-                                stop: function( event, ui ) {
+                                stop: function(event, ui) {
                                     var dims = self.dimensions,
                                         cellSize = dims.cellSize,
-                                        newCellSize = round( ui.size.width / dims.columns )
+                                        newCellSize = round(ui.size.width / dims.columns)
                                     ;
                                     //console.log([cellSize, newCellSize]);
                                     dims.cellSize = newCellSize;
                                     grid.removeClass('resizing');
-                                    enableSelectable( );
-                                    self.updateDimensions( );
+                                    enableSelectable();
+                                    self.updateDimensions();
                                 }
                             })
                         ;
                     }
-                    else if ( isAlreadyCreated && !isAlreadyResizable )
+                    else if (isAlreadyCreated && !isAlreadyResizable)
                     {
                         grid.resizable('option', 'disabled', false);
                     }
                 }
                 else
                 {
-                    if ( and_destroy && isAlreadyCreated )
+                    if (and_destroy && isAlreadyCreated)
                     {
-                        grid.resizable( 'destroy' )
+                        grid.resizable('destroy')
                         .off('mousedown.resizablehandle mouseup.resizablehandle resizestart resizestop')
                         ;
                     }
-                    else if ( isAlreadyResizable && !and_destroy )
+                    else if (isAlreadyResizable && !and_destroy)
                     {
                         grid.resizable('option', 'disabled', true)
                                     .removeClass('ui-state-disabled')
@@ -1021,41 +1021,41 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return self;
     },
 
-    setHighlightMode: function( bool ) {
+    setHighlightMode: function(bool) {
         this.highlightMode = !!bool;
         return this;
     },
 
-    handleInput: function( evt, input, prevval ) {
+    handleInput: function(evt, input, prevval) {
         var self = this, AB = self.alphabet,
-            val = input.value.toUpperCase( ), $input = $(input),
+            val = input.value.toUpperCase(), $input = $(input),
             rows = self.dimensions.rows, ret, cell,
             columns = self.dimensions.columns,
             moveDir = self.toggleHorizontalHighlight ? KEY_RIGHT : KEY_DOWN
         ;
-        if ( val.length && 0 > AB.indexOf( val ) ) val = "";
-        if ( self.toggleErrorsHighlight )
+        if (val.length && 0 > AB.indexOf(val)) val = "";
+        if (self.toggleErrorsHighlight)
         {
-            if ( input.solution && val.length && val !== input.solution )
+            if (input.solution && val.length && val !== input.solution)
             {
-                if ( !$input.hasClass( ERRORCLASS ) )
-                    $input.addClass( ERRORCLASS );
+                if (!$input.hasClass(ERRORCLASS))
+                    $input.addClass(ERRORCLASS);
             }
             else
             {
-                $input.removeClass( ERRORCLASS );
+                $input.removeClass(ERRORCLASS);
             }
         }
         input.value = val;
 
         // move cursor to next cell
-        if ( val.length && -1 < AB.indexOf( val ) ) ret = moveCursor( $input.parent('.cell'), false, true, self.cells, rows, columns );
+        if (val.length && -1 < AB.indexOf(val) ) ret = moveCursor($input.parent('.cell'), false, true, self.cells, rows, columns);
         else ret = $input.parent('.cell');
-        if ( val !== prevval ) self.trigger( 'input', {input: input} );
+        if (val !== prevval) self.emit('input', {input: input});
         return ret;
     },
 
-    handleKeyNav: function( evt, $cell ) {
+    handleKeyNav: function(evt, $cell) {
         var self = this, dims = self.dimensions;
         return moveCursor(
             $cell,
@@ -1067,92 +1067,92 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         );
     },
 
-    showClues: function( bool ) {
+    showClues: function(bool) {
         var self = this, g = self.grid;
         bool = !arguments.length ? true : !!bool;
-        if ( bool && g.hasClass( HIDE_CLUES ) ) g.removeClass( HIDE_CLUES );
-        else if ( !bool && !g.hasClass( HIDE_CLUES ) ) g.addClass( HIDE_CLUES );
+        if (bool && g.hasClass(HIDE_CLUES)) g.removeClass(HIDE_CLUES);
+        else if (!bool && !g.hasClass(HIDE_CLUES)) g.addClass(HIDE_CLUES);
         return self;
     },
 
-    showSolution: function( bool ) {
+    showSolution: function(bool) {
         var self = this, g = self.grid;
         bool = !arguments.length ? true : !!bool;
-        if ( bool && g.hasClass( HIDE_SOLUTION ) ) g.removeClass( HIDE_SOLUTION );
-        else if ( !bool && !g.hasClass( HIDE_SOLUTION ) ) g.addClass( HIDE_SOLUTION );
+        if (bool && g.hasClass(HIDE_SOLUTION)) g.removeClass(HIDE_SOLUTION);
+        else if (!bool && !g.hasClass(HIDE_SOLUTION)) g.addClass(HIDE_SOLUTION);
         return self;
     },
 
-    enableUserMode: function( enable ) {
+    enableUserMode: function(enable) {
         var self = this, g = self.grid;
-        if ( enable && !self.userMode )
+        if (enable && !self.userMode)
         {
-            g.addClass( 'user-mode' );
-            self.setResizable( false );
+            g.addClass('user-mode');
+            self.setResizable(false);
             self.userMode = true;
-            self.trigger( 'userMode', {userMode: true} );
+            self.emit('userMode', {userMode: true});
         }
-        else if ( !enable && self.userMode )
+        else if (!enable && self.userMode)
         {
-            g.removeClass( 'user-mode' );
-            self.setResizable( true );
+            g.removeClass('user-mode');
+            self.setResizable(true);
             self.userMode = false;
-            self.trigger( 'userMode', {userMode: false} );
+            self.emit('userMode', {userMode: false});
         }
         return self;
     },
 
-    scale: function( s ) {
+    scale: function(s) {
         var self = this, grid = self.grid[0],
-            transformProperty = getTransformProperty( grid );
-        if ( arguments.length )
+            transformProperty = getTransformProperty(grid);
+        if (arguments.length)
         {
             s = parseFloat(s, 10);
-            grid.style[ transformProperty+'Origin' ] = 'center center';
-            grid.style[ transformProperty ] = 'scale('+s+','+s+')';
+            grid.style[transformProperty+'Origin'] = 'center center';
+            grid.style[transformProperty] = 'scale('+s+','+s+')';
         }
         else
         {
-            grid.style[ transformProperty+'Origin' ] = 'center center';
-            grid.style[ transformProperty ] = 'none';
+            grid.style[transformProperty+'Origin'] = 'center center';
+            grid.style[transformProperty] = 'none';
         }
         return self;
     },
 
-    build: function( dims ) {
+    build: function(dims) {
         var self = this;
         self
-            .buildGrid( dims )
-            .onBuildComplete( )
-            .trigger( 'build', null, 50 )
-            .trigger( 'percentage', {percentage: self.getPercentage( )}, 100 )
+            .buildGrid(dims)
+            .onBuildComplete()
+            .emit('build', null, 50)
+            .emit('percentage', {percentage: self.getPercentage()}, 100)
         ;
         return self;
     },
 
-    importTpl: function( jsonTpl ) {
+    importTpl: function(jsonTpl) {
         var self = this;
-        if ( jsonTpl && jsonTpl[HAS]("dimensions") )
+        if (jsonTpl && HAS.call(jsonTpl, "dimensions"))
         {
             self
-                //.setDimensions( jsonTpl.dimensions )
-                .setStyles( jsonTpl.styles )
-                .buildGrid( jsonTpl.dimensions )
+                //.setDimensions(jsonTpl.dimensions)
+                .setStyles(jsonTpl.styles)
+                .buildGrid(jsonTpl.dimensions)
             ;
 
-            if ( jsonTpl[HAS]('alphabet') && jsonTpl.alphabet && jsonTpl.alphabet.length )
-                self.setAlphabet( jsonTpl.alphabet );
+            if (HAS.call(jsonTpl, 'alphabet') && jsonTpl.alphabet && jsonTpl.alphabet.length)
+                self.setAlphabet(jsonTpl.alphabet);
 
             self
-                .onBuildComplete( )
-                .trigger( 'build', null, 50 )
-                .trigger( 'import', null, 100 )
+                .onBuildComplete()
+                .emit('build', null, 50)
+                .emit('import', null, 100)
             ;
         }
         return self;
     },
 
-    exportTpl: function( ) {
+    exportTpl: function() {
         var self = this, g = self.grid, gc = self.cells,
 
             jsonTpl = {
@@ -1169,68 +1169,68 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return jsonTpl;
     },
 
-    revealSolution: function( ) {
-        this.getCellInputs( ).each( revealCell );
+    revealSolution: function() {
+        this.getCellInputs().each(revealCell);
         return this;
     },
 
-    revealCells: function( cells ) {
-        if ( cells && cells.length ) cells.children( 'input' ).each( revealCell );
+    revealCells: function(cells) {
+        if (cells && cells.length) cells.children('input').each(revealCell);
         return this;
     },
 
-    revealCell: function( cell ) {
+    revealCell: function(cell) {
         cell = cell || this.currentInputCell || null;
-        if ( cell && cell.length && CELL === cell[ 0 ].cellType )
-            revealCell.call( cell[ 0 ].firstChild );
+        if (cell && cell.length && CELL === cell[0].cellType)
+            revealCell.call(cell[0].firstChild);
         return this;
     },
 
-    checkIsSolved: function( ) {
-        var inputs = this.getCellInputs( );
-        return inputs.filter( isValidSolution ).length === inputs.length;
+    checkIsSolved: function() {
+        var inputs = this.getCellInputs();
+        return inputs.filter(isValidSolution).length === inputs.length;
     },
 
-    getSolvedPercent: function( ) {
-        var inputs = this.getCellInputs( );
-        return inputs.filter( isValidSolution ).length / (inputs.length || 1);
+    getSolvedPercent: function() {
+        var inputs = this.getCellInputs();
+        return inputs.filter(isValidSolution).length / (inputs.length || 1);
     },
 
-    highlightErrors: function( toggle ) {
+    highlightErrors: function(toggle) {
         var self = this;
         self.toggleErrorsHighlight = !!toggle;
-        self.getCellInputs( ).each( self.toggleErrorsHighlight ? highlightErrors : deHighlightErrors );
+        self.getCellInputs().each(self.toggleErrorsHighlight ? highlightErrors : deHighlightErrors);
         return self;
     },
 
-    clearErrors: function( ) {
-        this.getCellInputs( ).each( clearErrors );
+    clearErrors: function() {
+        this.getCellInputs().each(clearErrors);
         return this;
     },
 
-    getCssStyles: function( externalCss ) {
+    getCssStyles: function(externalCss) {
         externalCss = externalCss
                 ? '<link rel="stylesheet" media="all" href="' + externalCss + '" />'
                 : ''
             ;
-        return  externalCss + '<style type="text/css" media="all">'+getCSS( this.style )+'</style>';
+        return  externalCss + '<style type="text/css" media="all">'+getCSS(this.style)+'</style>';
     },
 
-    setStyles: function( styles ) {
-        var self = this, defaultStyles = self.getDefaultStyles( );
+    setStyles: function(styles) {
+        var self = this, defaultStyles = self.getDefaultStyles();
         self.styles = extend({}, self.styles || defaultStyles, styles);
-        if ( !self.styles[HAS]("symbolColor") ) self.styles.symbolColor = defaultStyles.symbolColor;
-        if ( !self.styles[HAS]("clueColor") ) self.styles.clueColor = defaultStyles.clueColor;
+        if (!HAS.call(self.styles, "symbolColor")) self.styles.symbolColor = defaultStyles.symbolColor;
+        if (!HAS.call(self.styles, "clueColor")) self.styles.clueColor = defaultStyles.clueColor;
         return self;
     },
 
-    setDimensions: function( dims ) {
+    setDimensions: function(dims) {
         var self = this;
-        self.dimensions = extend({}, self.dimensions || self.getDefaultDimensions( ), dims);
+        self.dimensions = extend({}, self.dimensions || self.getDefaultDimensions(), dims);
         return self;
     },
 
-    updateStyles: function( andTrigger ) {
+    updateStyles: function(andTrigger) {
         var self = this, cssStyles = self.cssStyles, styles = self.styles;
         cssStyles.grid.css.style.borderColor = styles.outerBorderColor;
         cssStyles.grid.css.style.borderWidth = styles.outerBorderThickness + 'px';
@@ -1239,25 +1239,25 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         cssStyles.cell.css.style.borderStyle = styles.borderStyle;
         cssStyles.cell.css.style.color = styles.symbolColor;
         cssStyles.highlighted.css.style.backgroundColor = styles.highlightColor;
-        if ( false !== andTrigger ) self.trigger( 'update-styles' );
+        if (false !== andTrigger) self.emit('update-styles');
         return self;
     },
 
-    updateDimensions: function( andTrigger ) {
+    updateDimensions: function(andTrigger) {
         var self = this, dims = self.dimensions,
             styles = self.styles, cssStyles = self.cssStyles,
-            d = dims.cellSize, di = round( 0.6*d ),
+            d = dims.cellSize, di = round(0.6*d),
             rows = dims.rows, columns = dims.columns,
             totalCells = rows*columns, r, c, prevRows, prevColumns,
             className, grid = self.grid, gridEl = grid[0], cells = self.cells,
-            cellsInBounds = cellInBounds( rows, columns ),
+            cellsInBounds = cellInBounds(rows, columns),
             $last, cell, currentRows
         ;
 
         // update grid classes
         gridEl.className = gridEl.className
-            .replace(/\bnumRows-(\d+)\b/, function(m, m1){ prevRows = parseInt(m1, 10); return 'numRows-'+rows; })
-            .replace(/\bnumColumns-(\d+)\b/, function(m, m1){ prevColumns = parseInt(m1, 10); return 'numColumns-'+columns; })
+            .replace(/\bnumRows-(\d+)\b/, function(m, m1) {prevRows = parseInt(m1, 10); return 'numRows-'+rows;})
+            .replace(/\bnumColumns-(\d+)\b/, function(m, m1) {prevColumns = parseInt(m1, 10); return 'numColumns-'+columns;})
             .replace(/\bsizeCell-\d+\b/, 'sizeCell-'+d)
         ;
 
@@ -1267,83 +1267,81 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         gridEl.style.left = '';
         gridEl.style.top = '';
         // update grid dimensions
-        cssStyles.grid.css.style.width = (d*columns) + 'px';
-        cssStyles.grid.css.style.height = (d*rows) + 'px';
+        cssStyles.grid.css.style.width = String(d*columns) + 'px';
+        cssStyles.grid.css.style.height = String(d*rows) + 'px';
 
-        cssStyles.cell.css.style.width = d+'px';
-        cssStyles.cell.css.style.height = d+'px';
-        cssStyles.cell.css.style.fontSize = di+'px';
+        cssStyles.cell.css.style.width = String(d)+'px';
+        cssStyles.cell.css.style.height = String(d)+'px';
+        cssStyles.cell.css.style.fontSize = String(di)+'px';
 
         // update grid cells
-        cells.each(function( ) {
+        cells.each(function() {
             var cell = this, $cell = $(cell),
                 col = cell.column, row = cell.row
             ;
 
-            if ( row >= rows || col >= columns )
+            if (row >= rows || col >= columns)
             {
-                $cell.remove( );
+                $cell.remove();
             }
             else
             {
                 $cell.removeClass('row-first row-last column-first column-last');
-                if ( 0 === row ) $cell.addClass('row-first');
-                if ( rows-1 === row ) $cell.addClass('row-last');
-                if ( 0 === col ) $cell.addClass('column-first');
-                if ( columns-1 === col ) $cell.addClass('column-last');
+                if (0 === row) $cell.addClass('row-first');
+                if (rows-1 === row) $cell.addClass('row-last');
+                if (0 === col) $cell.addClass('column-first');
+                if (columns-1 === col) $cell.addClass('column-last');
 
-                cell.style.top = (row*d)+'px';
-                cell.style.left = (col*d)+'px';
+                cell.style.top = String(row*d)+'px';
+                cell.style.left = String(col*d)+'px';
             }
         });
 
         // add any additional rows/columns
-        if ( columns > prevColumns )
+        if (columns > prevColumns)
         {
-            currentRows = min( rows, prevRows );
-            for(r=0; r<currentRows; r++)
+            currentRows = min(rows, prevRows);
+            for (r=0; r<currentRows; ++r)
             {
                 $last = grid.children('.cell.row-'+r).eq(-1);
 
-                for(c=prevColumns; c<columns; c++)
+                for (c=prevColumns; c<columns; ++c)
                 {
-                   cell = self.buildCell( r, c, d,
-                        'cell default row-' + r + ' column-' + c + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')) + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))
-                    );
-                    $last = $(cell).insertAfter( $last );
+                   cell = self.buildCell(r, c, d,
+                        'cell default row-' + r + ' column-' + c + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')) + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : '')));
+                    $last = $(cell).insertAfter($last);
                 }
             }
         }
-        if ( rows > prevRows )
+        if (rows > prevRows)
         {
-            for(r=prevRows; r<rows; r++)
+            for (r=prevRows; r<rows; ++r)
             {
-                for(c=0; c<columns; c++)
+                for (c=0; c<columns; ++c)
                 {
-                   cell = self.buildCell( r, c, d,
-                        'cell default row-' + r + ' column-' + c + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')) + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))
-                    );
-                    grid.append( cell );
+                   cell = self.buildCell(r, c, d,
+                        'cell default row-' + r + ' column-' + c + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')) + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : '')));
+                    grid.append(cell);
                 }
             }
         }
-        self.cells = grid.children( '.cell' );
+        self.cells = grid.children('.cell');
 
         // update grid selectable
-        if ( grid.hasClass('ui-selectable') )
+        if (grid.hasClass('ui-selectable'))
         {
-            grid.selectable( 'refresh' );
+            grid.selectable('refresh');
         }
-        if ( false !== andTrigger )
+        if (false !== andTrigger)
         {
-            self.trigger( 'update-dimensions' );
-            self.trigger( 'percentage', {percentage: self.getPercentage( )}, 100 );
+            self.emit('update-dimensions');
+            self.emit('percentage', {percentage: self.getPercentage()}, 100);
         }
         return self;
     },
 
-    setAlphabet: function( alphabet ) {
-        if ( alphabet && alphabet.length )
+    setAlphabet: function(alphabet) {
+        if (alphabet && alphabet.length)
         {
             this.alphabet = alphabet.join ? alphabet.join('') : alphabet.slice();
         }
@@ -1351,149 +1349,149 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getHighlighted: function( ) {
-        return this.cells.filter( highlightedCell );
+    getHighlighted: function() {
+        return this.cells.filter(highlightedCell);
     },
 
     // @override
-    clearHighlighted: function( ) {
-        this.cells.filter( highlightedCell ).each( clearCell );
+    clearHighlighted: function() {
+        this.cells.filter(highlightedCell).each(clearCell);
         return this;
     },
 
-    clearCells: function( useCached ) {
+    clearCells: function(useCached) {
         var self = this;
-        if ( true === useCached ) self.getCellInputs( ).val( "" );
-        else self.cells.children( 'input' ).val( "" );
+        if (true === useCached) self.getCellInputs().val("");
+        else self.cells.children('input').val("");
         return self;
     },
 
     // @override
-    decorateCell: function( ) {
+    decorateCell: function() {
         return cell;
     },
 
     // @override
-    highlightClue: function( ) {
+    highlightClue: function() {
         return this;
     },
 
     // @override
-    addClue: function( ) {
+    addClue: function() {
         return this;
     },
 
     // @override
-    addClues: function( ) {
+    addClues: function() {
         return this;
     },
 
     // @override
-    clearClues: function( ) {
+    clearClues: function() {
         return this;
     },
 
-    clearGrid: function( useCached ) {
+    clearGrid: function(useCached) {
         this
-            .clearCells( useCached )
-            .clearClues( )
+            .clearCells(useCached)
+            .clearClues()
         ;
         return this;
     },
 
-    buildGrid: function( dims ) {
+    buildGrid: function(dims) {
         var self = this, r, c, grid, row, cell, styles, cssStyles, rows, columns, cellSize;
 
         dims = dims || {};
 
-        if ( !self.dimensions ) self.dimensions = self.getDefaultDimensions( );
-        if ( !self.styles ) self.styles = self.getDefaultStyles( );
+        if (!self.dimensions) self.dimensions = self.getDefaultDimensions();
+        if (!self.styles) self.styles = self.getDefaultStyles();
         self.userMode = false;
 
         self.alphabet = self.alphabet || Sudoku.ALPHABET;
-        if ( dims.rows ) self.dimensions.rows = dims.rows;
-        if ( dims.columns ) self.dimensions.columns = dims.columns;
-        if ( dims.cellSize ) self.dimensions.cellSize = dims.cellSize;
+        if (dims.rows) self.dimensions.rows = dims.rows;
+        if (dims.columns) self.dimensions.columns = dims.columns;
+        if (dims.cellSize) self.dimensions.cellSize = dims.cellSize;
         rows = self.dimensions.rows;
         columns = self.dimensions.columns;
         cellSize = self.dimensions.cellSize;
         styles = self.styles;
         cssStyles = self.cssStyles;
 
-        cssStyles.grid.css.style.width = (cellSize*columns) + 'px';
-        cssStyles.grid.css.style.height = (cellSize*rows) + 'px';
+        cssStyles.grid.css.style.width = String(cellSize*columns) + 'px';
+        cssStyles.grid.css.style.height = String(cellSize*rows) + 'px';
         cssStyles.grid.css.style.borderColor = styles.outerBorderColor;
-        cssStyles.grid.css.style.borderWidth = styles.outerBorderThickness + 'px';
+        cssStyles.grid.css.style.borderWidth = String(styles.outerBorderThickness) + 'px';
         cssStyles.cell.css.style.backgroundColor = styles.cellColor;
         cssStyles.cell.css.style.borderColor = styles.borderColor;
         cssStyles.cell.css.style.borderStyle = styles.borderStyle;
-        cssStyles.cell.css.style.width = cellSize+'px';
-        cssStyles.cell.css.style.height = cellSize+'px';
-        cssStyles.cell.css.style.fontSize = round( 0.6*cellSize )+'px';
+        cssStyles.cell.css.style.width = String(cellSize)+'px';
+        cssStyles.cell.css.style.height = String(cellSize)+'px';
+        cssStyles.cell.css.style.fontSize = String(round(0.6*cellSize))+'px';
         cssStyles.cell.css.style.color = styles.symbolColor;
         cssStyles.highlighted.css.style.backgroundColor = styles.highlightColor;
 
-        grid = Element( 'div' + '#' + self.id + '.' + self.getGridClasses( ).join( '.' ) );
+        grid = Element('div' + '#' + self.id + '.' + self.getGridClasses().join('.'));
         grid.setAttribute('id', self.id);
 
-        for (r=0; r<rows; r++)
+        for (r=0; r<rows; ++r)
         {
-            for (c=0; c<columns; c++)
+            for (c=0; c<columns; ++c)
             {
-                cell = self.buildCell( r, c, cellSize, [
+                cell = self.buildCell(r, c, cellSize, [
                     'cell default',
-                    'row-' + r + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')),
-                    'column-' + c  + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))
+                    'row-' + r + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')),
+                    'column-' + c  + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : ''))
                 ].join(' '));
-                grid.appendChild( cell );
+                grid.appendChild(cell);
             }
         }
 
-        self.grid = $( grid );
-        self.cells = self.grid.children( '.cell' );
+        self.grid = $(grid);
+        self.cells = self.grid.children('.cell');
         return self;
     },
 
-    buildCell: function( row, col, size, className ) {
-        var cell = Element( 'div' ), input = Element( 'input' );
+    buildCell: function(row, col, size, className) {
+        var cell = Element('div'), input = Element('input');
 
         cell.cellType = CELL;
         cell.highlightType = 0;
         cell.row = row;
         cell.column = col;
-        cell.style.top = (row*size)+'px';
-        cell.style.left = (col*size)+'px';
+        cell.style.top = String(row*size)+'px';
+        cell.style.left = String(col*size)+'px';
 
         input.solution = null;
         input.highlightType = 0;
-        input.setAttribute( "type", "text" );
-        input.setAttribute( "value", "" );
-        input.setAttribute( "maxlength", "1" );
+        input.setAttribute("type", "text");
+        input.setAttribute("value", "");
+        input.setAttribute("maxlength", "1");
 
-        cell.appendChild( input );
+        cell.appendChild(input);
 
-        if ( className ) cell.className = ''+className;
+        if (className) cell.className = ''+className;
         return cell;
     },
 
     // @override
-    onBuildComplete: function( ) {
+    onBuildComplete: function() {
         return this;
     },
 
     // @override
-    getSelector: function( ) {
+    getSelector: function() {
         return '#'+this.id+'.crossword';
     },
 
     // @override
-    getGridClasses: function( ) {
+    getGridClasses: function() {
         var dims = this.dimensions;
-        return [ 'crossword', 'numRows-'+dims.rows, 'numColumns-'+dims.columns, 'sizeCell-'+dims.cellSize ];
+        return ['crossword', 'numRows-'+dims.rows, 'numColumns-'+dims.columns, 'sizeCell-'+dims.cellSize];
     },
 
     // @override
-    getDefaultDimensions: function( ) {
+    getDefaultDimensions: function() {
         return {
             rows: 10,
             columns: 10,
@@ -1502,7 +1500,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getDefaultStyles: function( ) {
+    getDefaultStyles: function() {
         return {
             cellColor: '#ffffff',
             sepColor: '#f2e941',
@@ -1518,7 +1516,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getDefaultCssStyles: function( pzlSelector, styles, dims ) {
+    getDefaultCssStyles: function(pzlSelector, styles, dims) {
         return {
             grid: {
                 selector: pzlSelector,
@@ -1526,7 +1524,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
                     'width: '+(dims.columns*dims.cellSize)+'px',
                     'height: '+(dims.rows*dims.cellSize)+'px',
                     'border-color: ' + styles.outerBorderColor,
-                    'border-width: ' + styles.outerBorderThickness
+                    'border-width: ' + styles.outerBorderThickness+'px'
                 ]
             },
             cell: {
@@ -1551,46 +1549,46 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getSeparatorClasses: function( classes ) {
+    getSeparatorClasses: function(classes) {
         return '';
     },
 
     // @override
-    getPercentage: function( ) {
+    getPercentage: function() {
         return 0;
     },
 
     // @override
-    toDefaultCells: function( ) {
+    toDefaultCells: function() {
         return this;
     },
 
     // @override
-    toPlaceholderCells: function( ) {
+    toPlaceholderCells: function() {
         return this;
     },
 
     // @override
-    toSeparatorCells: function( ) {
+    toSeparatorCells: function() {
         return this;
     },
 
     // @override
-    setSolution: function( words ) {
+    setSolution: function(words) {
         return this;
     },
 
     // @override
-    setClues: function( ) {
+    setClues: function() {
         return this;
     },
 
     // @override
-    checkCluesMissing: function( ) {
+    checkCluesMissing: function() {
         return false;
     },
 
-    toString: function( ) {
+    toString: function() {
         return '[Sudoku.Puzzle type='+this.type+']';
     }
 });
@@ -1602,7 +1600,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
 * Extends the generic crossword Grid and adds any extra functionality needed for sudoku puzzles
 *
 **/
-!function(Sudoku, undef){
+!function(Sudoku, undef) {
 "use strict";
 
 var $ = Sudoku.$, extend = $.extend, stdMath = Math,
@@ -1615,45 +1613,46 @@ var $ = Sudoku.$, extend = $.extend, stdMath = Math,
     ERRORCLASS = Grid.ERRORCLASS,
     HIGHLIGHTCLASS = Grid.HIGHLIGHTCLASS,
     FOCUSEDCLASS = Grid.FOCUSEDCLASS,
-    HAS = 'hasOwnProperty'
+    HAS = Object.prototype.hasOwnProperty
 ;
 
-function get_value( cell, index, cells ) { cell.index = index; return cell.val; }
-function is_clue( )  { return this.clue; }
-function is_not_clue( ) { return !this.clue; }
-function find_alternatives( cell, alphabet, clues )
+function get_value(cell, index, cells) {cell.index = index; return cell.val;}
+function is_clue() {return this.clue;}
+function is_not_clue() {return !this.clue;}
+function find_alternatives(cell, alphabet, clues)
 {
-    var alts = alphabet.slice( 0 ), l = clues.length, k, clue, pos;
+    var alts = alphabet.slice(0), l = clues.length, k, clue, pos;
 
-    if ( !l ) return alts;
-    for (k=0; k<l; k++)
+    if (!l) return alts;
+    for (k=0; k<l; ++k)
     {
-        clue = clues[ k ];
-        if ( ((cell.column === clue.column) ||
+        clue = clues[k];
+        if (
+            ((cell.column === clue.column) ||
             (cell.row === clue.row) ||
             (cell.square === clue.square)) &&
-            -1 < (pos=alts.indexOf( clue.firstChild.value ))
+            -1 < (pos=alts.indexOf(clue.firstChild.value))
         )
         {
-            alts[ pos ] = '';
+            alts[pos] = '';
         }
     }
     return alts;
 }
-function update_notes( sudoku )
+function update_notes(sudoku)
 {
-    var clues = sudoku.cells.filter( is_clue ),
-        inputs = sudoku.cells.filter( is_not_clue ),
+    var clues = sudoku.cells.filter(is_clue),
+        inputs = sudoku.cells.filter(is_not_clue),
         alphabet = sudoku.alphabet.split("")
     ;
-    inputs.each(function( ) {
-        var cell = this, $cell = $(cell), alts = find_alternatives( cell, alphabet, clues );
-        $cell.find('.sticky-note').each(function( i ){
-            if ( !!alts[ i ] ) $(this).removeClass('note-disabled');
+    inputs.each(function() {
+        var cell = this, $cell = $(cell), alts = find_alternatives(cell, alphabet, clues);
+        $cell.find('.sticky-note').each(function(i) {
+            if (!!alts[i]) $(this).removeClass('note-disabled');
             else $(this).addClass('note-disabled');
         });
-        $cell.find('.note').each(function( i ){
-            if ( !!alts[ i ] ) $(this).removeClass('note-disabled');
+        $cell.find('.note').each(function(i) {
+            if (!!alts[i]) $(this).removeClass('note-disabled');
             else $(this).addClass('note-disabled');
         });
     });
@@ -1662,7 +1661,7 @@ function update_notes( sudoku )
 // add this crossword type
 Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
 
-    constructor: function( ) {
+    constructor: function() {
         var self = this;
         self.$super('constructor');
         self.type = 'SUDOKU';
@@ -1673,7 +1672,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
     difficulty: 1,
     dichromia: false,
 
-    dispose: function( ) {
+    dispose: function() {
         var self = this;
         self.difficulty = null;
         self.dichromia = null;
@@ -1681,17 +1680,17 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    getSelector: function( ) {
+    getSelector: function() {
         return '#'+this.id+'.crossword.sudoku';
     },
 
-    getGridClasses: function( ) {
+    getGridClasses: function() {
         var classes = this.$super('getGridClasses');
         classes.push('sudoku');
         return classes;
     },
 
-    getDefaultDimensions: function( ) {
+    getDefaultDimensions: function() {
         return {
             rows: 9,
             columns: 9,
@@ -1701,7 +1700,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         };
     },
 
-    getDefaultStyles: function( ) {
+    getDefaultStyles: function() {
         return {
             cellColor: '#ffffff',
             sepColor: '#f2e941',
@@ -1716,11 +1715,11 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         };
     },
 
-    getDefaultCssStyles: function( pzlSelector, styles, dims ) {
+    getDefaultCssStyles: function(pzlSelector, styles, dims) {
         var cssStyles = this.$super('getDefaultCssStyles', pzlSelector, styles, dims);
 
-        if ( cssStyles[HAS]("separator") ) delete cssStyles.separator;
-        if ( cssStyles[HAS]("placeholder") ) delete cssStyles.placeholder;
+        if (HAS.call(cssStyles, "separator")) delete cssStyles.separator;
+        if (HAS.call(cssStyles, "placeholder")) delete cssStyles.placeholder;
 
         cssStyles.stickyNotes = {
             selector: pzlSelector+' > .cell .sticky-notes a.sticky-note:before',
@@ -1762,7 +1761,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return cssStyles;
     },
 
-    updateStyles: function( andTrigger ) {
+    updateStyles: function(andTrigger) {
         var self = this, cssStyles = self.cssStyles, styles = self.styles;
         self.$super("updateStyles", false);
         cssStyles.cellClue.css.style.color = styles.clueColor;
@@ -1771,26 +1770,26 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         cssStyles.cellSubRowLast.css.style.borderBottomWidth = styles.outerBorderThickness + 'px';
         cssStyles.cellSubColLast.css.style.borderRightColor = styles.outerBorderColor;
         cssStyles.cellSubColLast.css.style.borderRightWidth = styles.outerBorderThickness + 'px';
-        if ( false !== andTrigger ) self.trigger( 'update-styles' );
+        if (false !== andTrigger) self.emit('update-styles');
         return self;
     },
 
-    updateDimensions: function( andTrigger ) {
+    updateDimensions: function(andTrigger) {
         var self = this;
         self.$super("updateDimensions", false);
-        if ( false !== andTrigger ) self.trigger( 'update-dimensions' );
+        if (false !== andTrigger) self.emit('update-dimensions');
         return self;
     },
 
-    enableNotes: function( bool ) {
+    enableNotes: function(bool) {
         var self = this, g = self.grid;
-        if ( self.userMode )
+        if (self.userMode)
         {
-            if ( bool )
+            if (bool)
             {
-                if ( !g.hasClass('notes') )
+                if (!g.hasClass('notes'))
                 {
-                    self.enableAllNotes( false );
+                    self.enableAllNotes(false);
                     g.addClass('notes');
                 }
             }
@@ -1802,15 +1801,15 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    enableAllNotes: function( bool ) {
+    enableAllNotes: function(bool) {
         var self = this, g = self.grid;
-        if ( self.userMode )
+        if (self.userMode)
         {
-            if ( bool )
+            if (bool)
             {
-                if ( !g.hasClass('all-notes') )
+                if (!g.hasClass('all-notes'))
                 {
-                    self.enableNotes( false );
+                    self.enableNotes(false);
                     g.addClass('all-notes');
                 }
             }
@@ -1822,35 +1821,35 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    clearNotes: function( ) {
+    clearNotes: function() {
         this.cells.removeClass('with-notes').find('.sticky-note.noted').removeClass('noted');
         return this;
     },
 
-    handleInput: function( evt, input, prevval ) {
+    handleInput: function(evt, input, prevval) {
         var self = this, AB = self.alphabet,
-            val = input.value.toUpperCase( ), $input = $(input),
+            val = input.value.toUpperCase(), $input = $(input),
             rows = self.dimensions.rows,
             columns = self.dimensions.columns
         ;
-        if ( val.length && 0 > AB.indexOf( val ) ) val = "";
-        if ( self.toggleErrorsHighlight )
+        if (val.length && 0 > AB.indexOf(val)) val = "";
+        if (self.toggleErrorsHighlight)
         {
-            if ( input.solution && val.length && val !== input.solution )
+            if (input.solution && val.length && val !== input.solution)
             {
-                if ( !$input.hasClass( ERRORCLASS ) )
-                    $input.addClass( ERRORCLASS );
+                if (!$input.hasClass(ERRORCLASS))
+                    $input.addClass(ERRORCLASS);
             }
             else
             {
-                $input.removeClass( ERRORCLASS );
+                $input.removeClass(ERRORCLASS);
             }
         }
         input.value = val;
-        if ( val !== prevval ) self.trigger( 'input', {input: input} );
+        if (val !== prevval) self.emit('input', {input: input});
     },
 
-    buildGrid: function( dims ) {
+    buildGrid: function(dims) {
         var self = this, r, c, grid, row, cell, styles, cssStyles,
             rows, columns, cellSize, subrows, subcolumns,
             modr, modc, sj, sic, sicinc
@@ -1858,15 +1857,15 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
 
         dims = dims || {};
 
-        if ( !self.dimensions ) self.dimensions = self.getDefaultDimensions( );
-        if ( !self.styles ) self.styles = self.getDefaultStyles( );
+        if (!self.dimensions) self.dimensions = self.getDefaultDimensions();
+        if (!self.styles) self.styles = self.getDefaultStyles();
         self.userMode = false;
 
-        if ( dims.rows ) self.dimensions.rows = dims.rows;
-        if ( dims.columns ) self.dimensions.columns = dims.columns;
-        if ( dims.subRows ) self.dimensions.subRows = dims.subRows;
-        if ( dims.subColumns ) self.dimensions.subColumns = dims.subColumns;
-        if ( dims.cellSize ) self.dimensions.cellSize = dims.cellSize;
+        if (dims.rows) self.dimensions.rows = dims.rows;
+        if (dims.columns) self.dimensions.columns = dims.columns;
+        if (dims.subRows) self.dimensions.subRows = dims.subRows;
+        if (dims.subColumns) self.dimensions.subColumns = dims.subColumns;
+        if (dims.cellSize) self.dimensions.cellSize = dims.cellSize;
         rows = self.dimensions.rows;
         columns = self.dimensions.columns;
         subrows = self.dimensions.subRows;
@@ -1875,119 +1874,119 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         styles = self.styles;
         cssStyles = self.cssStyles;
 
-        cssStyles.grid.css.style.width = (cellSize*columns) + 'px';
-        cssStyles.grid.css.style.height = (cellSize*rows) + 'px';
+        cssStyles.grid.css.style.width = String(cellSize*columns) + 'px';
+        cssStyles.grid.css.style.height = String(cellSize*rows) + 'px';
         cssStyles.grid.css.style.borderColor = styles.outerBorderColor;
-        cssStyles.grid.css.style.borderWidth = styles.outerBorderThickness + 'px';
+        cssStyles.grid.css.style.borderWidth = String(styles.outerBorderThickness) + 'px';
         cssStyles.cell.css.style.backgroundColor = styles.cellColor;
         cssStyles.cell.css.style.borderColor = styles.borderColor;
         cssStyles.cell.css.style.borderStyle = styles.borderStyle;
-        cssStyles.cell.css.style.width = cellSize+'px';
-        cssStyles.cell.css.style.height = cellSize+'px';
-        cssStyles.cell.css.style.fontSize = round( 0.6*cellSize )+'px';
+        cssStyles.cell.css.style.width = String(cellSize)+'px';
+        cssStyles.cell.css.style.height = String(cellSize)+'px';
+        cssStyles.cell.css.style.fontSize = String(round(0.6*cellSize))+'px';
         cssStyles.cell.css.style.color = styles.symbolColor;
         cssStyles.cellClue.css.style.color = styles.clueColor;
         cssStyles.stickyNotes.css.style.color = styles.symbolColor;
         cssStyles.highlighted.css.style.backgroundColor = styles.highlightColor;
         cssStyles.cellSubRowLast.css.style.borderBottomColor = styles.outerBorderColor;
-        cssStyles.cellSubRowLast.css.style.borderBottomWidth = styles.outerBorderThickness + 'px';
+        cssStyles.cellSubRowLast.css.style.borderBottomWidth = String(styles.outerBorderThickness) + 'px';
         cssStyles.cellSubColLast.css.style.borderRightColor = styles.outerBorderColor;
-        cssStyles.cellSubColLast.css.style.borderRightWidth = styles.outerBorderThickness + 'px';
+        cssStyles.cellSubColLast.css.style.borderRightWidth = String(styles.outerBorderThickness) + 'px';
 
-        grid = Element( 'div' + '#' + self.id + '.' + self.getGridClasses( ).join( '.' ) );
+        grid = Element('div' + '#' + self.id + '.' + self.getGridClasses().join('.'));
         grid.setAttribute('id', self.id);
 
         sic = 0; sicinc = /*~~(columns/subcolumns)*/subrows;
-        for (r=0; r<rows; r++)
+        for (r=0; r<rows; ++r)
         {
             modr = r % subrows;
             sj = 0;
-            for (c=0; c<columns; c++)
+            for (c=0; c<columns; ++c)
             {
                 modc = c % subcolumns;
-                cell = self.buildCell( subrows, subcolumns, r, c, sic+sj, cellSize, [
+                cell = self.buildCell(subrows, subcolumns, r, c, sic+sj, cellSize, [
                     'cell default',
-                    'row-' + r + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')) + (0==modr ? ' subrow-first' : (subrows-1==modr ? ' subrow-last' : '')),
-                    'column-' + c  + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))  + (0==modc ? ' subcolumn-first' : (subcolumns-1==modc ? ' subcolumn-last' : '')),
+                    'row-' + r + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')) + (0===modr ? ' subrow-first' : (subrows-1===modr ? ' subrow-last' : '')),
+                    'column-' + c  + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : ''))  + (0===modc ? ' subcolumn-first' : (subcolumns-1===modc ? ' subcolumn-last' : '')),
                     'square-' + (sic+sj)
                 ].join(' '));
 
-                grid.appendChild( cell );
-                if (subcolumns-1 == modc)  sj++;
+                grid.appendChild(cell);
+                if (subcolumns-1 === modc)  ++sj;
             }
-            if (subrows-1 == modr) sic+=sicinc;
+            if (subrows-1 === modr) sic+=sicinc;
         }
 
-        self.grid = $( grid );
-        self.cells = self.grid.children( '.cell' );
-        self.setDichromia( self.dichromia );
+        self.grid = $(grid);
+        self.cells = self.grid.children('.cell');
+        self.setDichromia(self.dichromia);
 
         // resizable grid
-        self.setResizable( true, true );
+        self.setResizable(true, true);
 
         return self;
     },
 
-    buildCell: function( subrows, subcolumns, row, col, squ, size, className ) {
-        var cell = Element( 'div' ), input = Element( 'input' ),
-            notes = Element( 'div.notes' ), stickynotes = Element( 'div.sticky-notes' ),
+    buildCell: function(subrows, subcolumns, row, col, squ, size, className) {
+        var cell = Element('div'), input = Element('input'),
+            notes = Element('div.notes'), stickynotes = Element('div.sticky-notes'),
             i, j, k, noterow, stickynoterow, note, stickynote,
             max_subcolumns = max(subcolumns, subrows),  min_subrows = min(subcolumns, subrows),
-            nw = round( 100/max_subcolumns ), nfs = round( 2*nw )
+            nw = round(100/max_subcolumns), nfs = round(2*nw)
         ;
 
         k = 0;
-        for (i=0; i<min_subrows; i++)
+        for (i=0; i<min_subrows; ++i)
         {
-            noterow = Element( 'div.note-row' );
-            stickynoterow = Element( 'div.note-row' );
-            for (j=0; j<max_subcolumns; j++)
+            noterow = Element('div.note-row');
+            stickynoterow = Element('div.note-row');
+            for (j=0; j<max_subcolumns; ++j)
             {
-                note = Element( 'a.note' );
-                stickynote = Element( 'a.sticky-note' );
+                note = Element('a.note');
+                stickynote = Element('a.sticky-note');
                 note.href = '#';
                 note.title = ' ';
-                note.style.fontSize = nfs + '%';
-                note.style.paddingBottom = note.style.width = nw + '%';
+                note.style.fontSize = String(nfs) + '%';
+                note.style.paddingBottom = note.style.width = String(nw) + '%';
                 stickynote.href = '#';
                 stickynote.title = ' ';
-                stickynote.style.fontSize = nfs + '%';
-                stickynote.style.paddingBottom = stickynote.style.width = nw + '%';
-                noterow.appendChild( note );
-                stickynoterow.appendChild( stickynote );
+                stickynote.style.fontSize = String(nfs) + '%';
+                stickynote.style.paddingBottom = stickynote.style.width = String(nw) + '%';
+                noterow.appendChild(note);
+                stickynoterow.appendChild(stickynote);
             }
-            notes.appendChild( noterow );
-            stickynotes.appendChild( stickynoterow );
+            notes.appendChild(noterow);
+            stickynotes.appendChild(stickynoterow);
         }
 
-        cell.cellType = CLUE;
+        cell.cellType = CELL;
         cell.highlightType = 0;
         cell.row = row;
         cell.column = col;
         cell.square = squ;
-        cell.clue = true;
-        cell.style.top = (row*size)+'px';
-        cell.style.left = (col*size)+'px';
+        cell.clue = false;
+        cell.style.top = String(row*size)+'px';
+        cell.style.left = String(col*size)+'px';
 
         input.solution = null;
         input.highlightType = 0;
         input.readOnly = false;
-        input.setAttribute( "type", "text" );
-        input.setAttribute( "value", "" );
-        input.setAttribute( "maxlength", "1" );
+        input.setAttribute("type", "text");
+        input.setAttribute("value", "");
+        input.setAttribute("maxlength", "1");
 
-        cell.appendChild( input );
-        cell.appendChild( stickynotes );
-        cell.appendChild( notes );
+        cell.appendChild(input);
+        cell.appendChild(stickynotes);
+        cell.appendChild(notes);
 
-        if ( className ) cell.className = ''+className;
+        if (className) cell.className = ''+className;
         return cell;
     },
 
-    onBuildComplete: function( ) {
+    onBuildComplete: function() {
         var self = this, grid = self.grid;
 
-        if ( $.fn.contextMenu )
+        if ($.fn.contextMenu)
         {
             // contextmenus(s) for separator cells
             grid.contextMenu({
@@ -2000,48 +1999,48 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
                 },
 
                 callback: function(key, options) {
-                    self.decorateCell( $(this), key );
+                    self.decorateCell($(this), key);
                 }
             });
         }
 
-        grid.on('keydown click focus', '.cell:not(.clue) > input', function( evt ){
-            var input = evt.target, cell = $(input).closest( '.cell' ),
+        grid.on('keydown click focus', '.cell:not(.clue) > input', function(evt) {
+            var input = evt.target, cell = $(input).closest('.cell'),
                 code, prevcell, cells = self.cells, prevval;
-            if ( CELL === cell[0].cellType )
+            if (CELL === cell[0].cellType)
             {
                 prevcell = self.currentInputCell;
                 self.currentInputCell = cell;
 
-                if ( 'keydown' === evt.type )
+                if ('keydown' === evt.type)
                 {
                     code = evt.which;
                     // http://stackoverflow.com/a/5829387/3591273
                     //ch = String.fromCharCode((96 <= code && code <= 105)? code-48 : code).toUpperCase( );
 
-                    if ( ESC_KEY === code )
+                    if (ESC_KEY === code)
                     {
-                        setTimeout(function( ) {
+                        setTimeout(function() {
                             cells.removeClass('current');
                         }, 100);
 
-                        evt.preventDefault( );
-                        evt.stopPropagation( );
+                        evt.preventDefault();
+                        evt.stopPropagation();
 
                         return false;
                     }
 
-                    else if ( KEY_UP === code || KEY_DOWN === code || KEY_LEFT === code || KEY_RIGHT === code )
+                    else if (KEY_UP === code || KEY_DOWN === code || KEY_LEFT === code || KEY_RIGHT === code)
                     {
                         cells.removeClass('current');
 
                         // grid navigation with keyboard
-                        setTimeout(function( ) {
-                            self.handleKeyNav( evt, cell );
+                        setTimeout(function() {
+                            self.handleKeyNav(evt, cell);
                         }, 100);
 
-                        evt.preventDefault( );
-                        evt.stopPropagation( );
+                        evt.preventDefault();
+                        evt.stopPropagation();
 
                         return false;
                     }
@@ -2052,59 +2051,59 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
 
                         // digits input
                         prevval = input.value;
-                        setTimeout(function( ) {
-                            self.handleInput( evt, input, prevval );
-                            if ( input.value.length ) cell.addClass('no-notes');
+                        setTimeout(function() {
+                            self.handleInput(evt, input, prevval);
+                            if (input.value.length) cell.addClass('no-notes');
                             else cell.removeClass('no-notes');
                         }, 100);
                     }
                 }
                 else
                 {
-                    if ( prevcell ) prevcell.removeClass( 'current' );
+                    if (prevcell) prevcell.removeClass('current');
                 }
             }
         });
 
-        grid.on('click', '.cell:not(.clue)', function( evt ){
+        grid.on('click', '.cell:not(.clue)', function(evt) {
             var cell = $(evt.target), prevcell;
 
-            if ( CELL === cell[0].cellType )
+            if (CELL === cell[0].cellType)
             {
                 prevcell = self.currentInputCell;
                 self.currentInputCell = cell;
 
-                if ( prevcell ) prevcell.removeClass( 'current' );
-                cell.addClass( 'current' );
+                if (prevcell) prevcell.removeClass('current');
+                cell.addClass('current');
             }
-            evt.preventDefault( );
-            evt.stopPropagation( );
+            evt.preventDefault();
+            evt.stopPropagation();
 
             return false;
         });
 
-        grid.on('click', '.cell:not(.clue) > .notes', function( evt ){
-            $(evt.target).closest('.cell').removeClass( 'current' );
-            evt.preventDefault( );
-            evt.stopPropagation( );
+        grid.on('click', '.cell:not(.clue) > .notes', function(evt) {
+            $(evt.target).closest('.cell').removeClass('current');
+            evt.preventDefault();
+            evt.stopPropagation();
             return false;
         });
 
-        grid.on('click', '.cell:not(.clue) .note', function( evt ){
+        grid.on('click', '.cell:not(.clue) .note', function(evt) {
             var $note = $(evt.target), $cell = $note.closest('.cell'),
                 input = $cell[0].firstChild, $input = $(input);
 
             $cell.removeClass('current');
-            if ( !$note.hasClass('note-disabled') )
+            if (!$note.hasClass('note-disabled'))
             {
-                if ( grid.hasClass('notes') )
+                if (grid.hasClass('notes'))
                 {
-                    if ( $cell.hasClass('no-notes') ) $cell.removeClass('no-notes');
+                    if ($cell.hasClass('no-notes')) $cell.removeClass('no-notes');
                     var stickynote = $cell.find('.sticky-note[title="'+$note.attr('title')+'"]');
-                    if ( stickynote.hasClass('noted') )
+                    if (stickynote.hasClass('noted'))
                     {
                         stickynote.removeClass('noted');
-                        //if ( !$cell.find('.sticky-note.noted').length )
+                        //if (!$cell.find('.sticky-note.noted').length)
                     }
                     else
                     {
@@ -2112,29 +2111,29 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
                         //$cell.addClass('with-notes');
                     }
                     $input.removeClass(ERRORCLASS).val('');
-                    self.trigger( 'input', {input: input} );
+                    self.emit('input', {input: input});
                 }
                 else
                 {
                     input.value = $note.attr('title');
                     $cell.addClass('no-notes');
-                    if ( self.toggleErrorsHighlight )
+                    if (self.toggleErrorsHighlight)
                     {
-                        if ( input.value !== input.solution )
+                        if (input.value !== input.solution)
                         {
-                            if ( !$input.hasClass( ERRORCLASS ) )
-                                $input.addClass( ERRORCLASS );
+                            if (!$input.hasClass(ERRORCLASS))
+                                $input.addClass(ERRORCLASS);
                         }
                         else
                         {
-                            $input.removeClass( ERRORCLASS );
+                            $input.removeClass(ERRORCLASS);
                         }
                     }
-                    self.trigger( 'input', {input: input} );
+                    self.emit('input', {input: input});
                 }
             }
-            evt.preventDefault( );
-            evt.stopPropagation( );
+            evt.preventDefault();
+            evt.stopPropagation();
             return false;
         });
 
@@ -2142,24 +2141,24 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    clearCells: function( useCached ) {
+    clearCells: function(useCached) {
         var self = this;
         self.$super('clearCells', useCached);
-        self.cells.filter( is_not_clue ).removeClass('no-notes');
+        self.cells.filter(is_not_clue).removeClass('no-notes');
         return self;
     },
 
-    revealSolution: function( ) {
+    revealSolution: function() {
         var self = this;
         self.$super('revealSolution');
-        self.cells.filter( is_not_clue ).addClass('no-notes');
+        self.cells.filter(is_not_clue).addClass('no-notes');
         return self;
     },
 
-    revealCell: function( cell ) {
+    revealCell: function(cell) {
         var self = this;
         cell = cell || self.currentInputCell || null;
-        if ( cell && cell.length )
+        if (cell && cell.length)
         {
             self.$super('revealCell', cell);
             cell.addClass('no-notes');
@@ -2167,33 +2166,33 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    decorateCell: function( $cell, key ) {
+    decorateCell: function($cell, key) {
         var self = this, gridcell = $cell[0], digit = gridcell.firstChild;
-        if ( 'make-clue' === key )
+        if ('make-clue' === key)
         {
             gridcell.clue = true;
             gridcell.cellType = CLUE;
             digit.readOnly = true;
             digit.value = digit.solution || '';
             digit.setAttribute("value", digit.solution || '');
-            if ( !$cell.hasClass('clue') ) $cell.addClass( 'clue' );
+            if (!$cell.hasClass('clue')) $cell.addClass('clue');
         }
-        else if ( 'unmake-clue' === key )
+        else if ('unmake-clue' === key)
         {
             gridcell.clue = false;
             gridcell.cellType = CELL;
             digit.readOnly = false;
             digit.value = digit.solution || '';
             digit.setAttribute("value", digit.solution || '');
-            $cell.removeClass( 'clue' );
+            $cell.removeClass('clue');
         }
     },
 
-    setAlphabet: function( alphabet ) {
+    setAlphabet: function(alphabet) {
         var self = this;
-        if ( alphabet && alphabet.length >= self.dimensions.rows )
+        if (alphabet && alphabet.length >= self.dimensions.rows)
         {
-            self.alphabet = alphabet.slice( 0, self.dimensions.rows );
+            self.alphabet = alphabet.slice(0, self.dimensions.rows);
         }
         else
         {
@@ -2202,15 +2201,39 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    setDichromia: function( bool ) {
+    setDichromia: function(bool) {
         var self = this, g = self.grid;
         self.dichromia = bool = !!bool;
-        if ( bool && !g.hasClass('dichromia') ) g.addClass('dichromia');
-        else if ( !bool ) g.removeClass('dichromia');
+        if (bool && !g.hasClass('dichromia')) g.addClass('dichromia');
+        else if (!bool) g.removeClass('dichromia');
         return self;
     },
 
-    getRawGrid: function( ) {
+    markFilledCellsAsClues: function() {
+        var self = this;
+        self.cells.each(function(i) {
+            var cell = this, is_clue;
+            is_clue = !!(cell.firstChild && cell.firstChild.value && (0 < cell.firstChild.value.length));
+            if (is_clue)
+            {
+                cell.clue = true;
+                cell.cellType = CLUE;
+                if (!$(cell).hasClass('clue')) $(cell).addClass('clue');
+                cell.firstChild.solution = cell.firstChild.value;
+            }
+            else
+            {
+                cell.clue = false;
+                cell.cellType = CELL;
+                cell.firstChild.value = '';
+                cell.firstChild.solution = '';
+                $(cell).removeClass('clue');
+            }
+        });
+        return self;
+    },
+
+    getRawGrid: function() {
         var self = this, i, l, cell, digit,
             r = self.dimensions.rows, c = self.dimensions.columns,
             l = r*c, grid
@@ -2219,8 +2242,8 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         grid = {
              alphabet: self.alphabet ? self.alphabet.slice() : null
             ,difficulty: self.difficulty || 1
-            ,cells: new Array( l )
-            ,values: new Array( l )
+            ,cells: new Array(l)
+            ,values: new Array(l)
             /*,row: null
             ,col: null
             ,squ: null*/
@@ -2229,10 +2252,11 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
             ,subrows: parseInt(self.dimensions.subRows, 10)
             ,subcols: parseInt(self.dimensions.subColumns, 10)
         };
-        self.cells.each(function( i ) {
+        self.cells.each(function(i) {
             var cell = this
-            grid.values[ i ] = cell.firstChild.solution || '';
-            grid.cells[ i ] = {
+            grid.values[i] = cell.firstChild.solution || '';
+            //if (cell.clue) console.log('grid clue', cell.firstChild.solution, cell.row, cell.column);
+            grid.cells[i] = {
                 index: i,
                 row: cell.row, col: cell.column, squ: cell.square,
                 clue: !!cell.clue
@@ -2241,20 +2265,20 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return grid;
     },
 
-    setRawGrid: function( grid ) {
-        if ( !grid ) return this;
+    setRawGrid: function(grid) {
+        if (!grid) return this;
         var self = this, i, l, cell, digit, gridcell, $gridcell,
             r = self.dimensions.rows, c = self.dimensions.columns,
             l = r*c, cells, val, v, $cells = self.cells
         ;
 
         // fix prev grid format
-        if ( !grid[HAS]('cells') )
+        if (!HAS.call(grid, 'cells'))
         {
             grid.cells = grid.values; //delete grid.values;
-            grid.values = grid.cells.map( get_value );
+            grid.values = grid.cells.map(get_value);
         }
-        if ( grid[HAS]('subRows') )
+        if (HAS.call(grid, 'subRows'))
         {
             grid.cols = grid.columns; delete grid.columns;
             grid.subrows = grid.subRows; delete grid.subRows;
@@ -2262,57 +2286,57 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         }
 
         cells = grid.cells;
-        if ( l === cells.length )
+        if (l === cells.length)
         {
             val = grid.values;
             self.difficulty = grid.difficulty || 1;
-            if ( grid[HAS]('alphabet') )
+            if (HAS.call(grid, 'alphabet'))
                 self.alphabet = grid.alphabet.join ? grid.alphabet.join('') : (''+grid.alphabet);
-            else if ( !self.alphabet )
-                self.alphabet = getRange(c,{start:1}).join('');
+            else if (!self.alphabet)
+                self.alphabet = getRange(c, {start:1}).join('');
 
             // set on grid
-            for (i=0; i<l; i++)
+            for (i=0; i<l; ++i)
             {
-                cell = cells[ i ]; v = val[cell.index];
-                if ( "string" !== typeof v ) v = self.alphabet.charAt( v );
-                $gridcell = $cells.eq( i ); gridcell = $gridcell[ 0 ]; digit = gridcell.firstChild;
+                cell = cells[i]; v = val[cell.index];
+                if ("string" !== typeof v) v = self.alphabet.charAt(v);
+                $gridcell = $cells.eq(i); gridcell = $gridcell[0]; digit = gridcell.firstChild;
                 digit.solution = v;
                 gridcell.row = cell.row;
                 gridcell.column = cell.col;
                 gridcell.square = cell.squ;
                 gridcell.clue = !!cell.clue;
-                if ( gridcell.clue )
+                if (gridcell.clue)
                 {
                     gridcell.cellType = CLUE;
                     digit.readOnly = true;
                     digit.value = v;
                     digit.setAttribute("value", v);
-                    $gridcell.addClass( 'clue' );
+                    $gridcell.addClass('clue');
                 }
                 else
                 {
                     gridcell.cellType = CELL;
                     digit.readOnly = false;
-                    /*if ( !USERMODE ) digit.value = v;
+                    /*if (!USERMODE) digit.value = v;
                     else*/ digit.value = '';
-                    $gridcell.removeClass( 'clue' );
+                    $gridcell.removeClass('clue');
                 }
-                $gridcell.find('.sticky-note').each(function( i ) {
-                    this.title = self.alphabet.charAt( i );
+                $gridcell.find('.sticky-note').each(function(i) {
+                    this.title = self.alphabet.charAt(i);
                 });
-                $gridcell.find('.note').each(function( i ) {
-                    this.title = self.alphabet.charAt( i );
+                $gridcell.find('.note').each(function(i) {
+                    this.title = self.alphabet.charAt(i);
                 });
             }
         }
-        update_notes( self );
+        update_notes(self);
         return self;
     },
 
-    importTpl: function( jsonTpl ) {
+    importTpl: function(jsonTpl) {
         var self = this;
-        if ( jsonTpl && jsonTpl[HAS]("dimensions") )
+        if (jsonTpl && HAS.call(jsonTpl, "dimensions"))
         {
             self.dichromia = !!jsonTpl.dichromia;
             self.$super('importTpl', jsonTpl);
@@ -2320,10 +2344,10 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
         return self;
     },
 
-    exportTpl: function( ) {
+    exportTpl: function() {
         var self = this,
             tpl = self.$super('exportTpl');
-        if ( tpl ) tpl["dichromia"] = !!self.dichromia;
+        if (tpl) tpl["dichromia"] = !!self.dichromia;
         return tpl;
     }
 });
@@ -2334,7 +2358,7 @@ Sudoku.Sudoku = Sudoku.Factory.GRIDS['SUDOKU'] = Sudoku.Class(Grid, {
 * Finds solutions for a given crossword/puzzle Grid
 *
 **/
-!function(Sudoku, undef){
+!function(Sudoku, undef) {
 "use strict";
 
 //
@@ -2359,10 +2383,10 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
         }
     },
 
-    constructor: function( component ) {
+    constructor: function(component) {
         var self = this;
-        self.$super( 'constructor', 100/*, false*/ );
-        self.initPubSub( );
+        self.$super('constructor', 100/*, false*/);
+        self.initPubSub();
         self.component = component || 'Sudoku.Compiler';
         self.cutoff_mode = Compiler.MODE.AUTO;
         self.status = Compiler.STATUS.INIT;
@@ -2381,10 +2405,10 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
     MIN_ALTERNATIVES: 2,
     _NUM_ALTERNATIVES: 5,
 
-    dispose: function( ) {
+    dispose: function() {
         var self = this;
-        self.$super( 'dispose' );
-        self.disposePubSub( );
+        self.$super('dispose');
+        self.disposePubSub();
         self.component = null;
         self.grid = null;
         self.status = null;
@@ -2395,40 +2419,40 @@ var Compiler = Sudoku.Compiler = Sudoku.Class({
         return self;
     },
 
-    fork: function( ) {
+    fork: function() {
         var self = this;
-        self.unfork( true ).$super( 'fork', self.component, Sudoku.Path.file );
+        self.unfork(true).$super('fork', self.component, Sudoku.Path.file);
         return self;
     },
 
-    stop: function( explicit ) {
+    stop: function(explicit) {
         var self = this, delay = 500;
-        if ( self.$thread )
+        if (self.$thread)
         {
-            self.send( 'stop' );
-            if ( true === explicit ) setTimeout(function(){self.unfork(true);}, delay);
+            self.send('stop');
+            if (true === explicit) setTimeout(function() {self.unfork(true);}, delay);
         }
-        if ( self.$queue.length ) self.empty( );
+        if (self.$queue.length) self.empty();
         return self;
     },
 
-    setGrid: function( grid ) {
-        if ( grid ) this.grid = grid;
+    setGrid: function(grid) {
+        if (grid) this.grid = grid;
         return this;
     },
 
     // @override
-    setSolution: function( ) {
+    setSolution: function() {
         return this;
     },
 
     // @override
-    clearSolution: function( ) {
+    clearSolution: function() {
         return this;
     },
 
     // @override
-    compile: function( ) {
+    compile: function() {
         return this;
     }
 });
@@ -2440,7 +2464,7 @@ Compiler.RUN_MODE = Sudoku.Asynchronous.MODE;
 * Finds solutions for a given sudoku
 *
 **/
-!function(Sudoku, undef){
+!function(Sudoku, undef) {
 "use strict";
 
 var isWorker = Sudoku.isWorker, stdMath = Math,
@@ -2451,7 +2475,7 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
     random = stdMath.random, rand = Sudoku.randi, randItem = Sudoku.randomItem,
     Compiler = Sudoku.Compiler,
 
-    HAS = 'hasOwnProperty', PUT_FIRST = 'unshift', PUT_LAST = 'push',
+    PUT_FIRST = 'unshift', PUT_LAST = 'push',
     NONE = 0, UP = 1, DOWN = 2, LEFT = 4, RIGHT = 8,
     VERTICAL = UP | DOWN, HORIZONTAL = LEFT | RIGHT,
     FORWARD = 1, REVERSE = -1,
@@ -2463,26 +2487,26 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
     ArrayUint32 = 'undefined' !== typeof Uint32Array ? Uint32Array : Array,
     BINLOG_256 = new ArrayUint8([0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]),
 
-    is_clue = function( cell ) { return cell.clue; },
-    is_empty = function( cell ) { return !cell.clue; },
+    is_clue = function(cell) {return cell.clue;},
+    is_empty = function(cell) {return !cell.clue;},
 
     filter_and_map_clue = function(filtered, cell) {
-        if ( cell.clue && (filtered.val[cell.index] === filtered.v) ) filtered.matches++;
+        if (cell.clue && (filtered.val[cell.index] === filtered.v)) ++filtered.matches;
         return filtered;
     },
 
-    square = function( a, shuffled ) {
+    square = function(a, shuffled) {
         var squ = a.slice(0);
-        if ( true === shuffled ) squ = shuffle( squ );
+        if (true === shuffled) squ = shuffle(squ);
         return squ;
     },
 
     array2d = function(a1d, rows, cols) {
         var a2d = array(rows), r, c;
         c = 0;
-        for(r=0; r<rows; r++)
+        for (r=0; r<rows; ++r)
         {
-            a2d[r] = a1d.slice(c,c+cols);
+            a2d[r] = a1d.slice(c, c+cols);
             c += cols;
         }
         return a2d;
@@ -2490,9 +2514,9 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
 
     array1d = function(a2d/*, rows, cols*/) {
         var a1d = [], r;
-        for(r=0; r<a2d.length; r++)
+        for (r=0; r<a2d.length; ++r)
         {
-            a1d = a1d.concat( a2d[r] );
+            a1d = a1d.concat(a2d[r]);
         }
         return a1d;
     },
@@ -2500,20 +2524,20 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
     // various sudoku symmetry operations
     // in order to try generate ALL possible and valid sudoku configurations
     //
-    shift = function( a2d, rows, cols, dir ) {
+    shift = function(a2d, rows, cols, dir) {
         var shifted = a2d, l = a2d.length,
             i, line, tmp, d, direction;
         dir = dir || [];
-        for (d=0; d<dir.length; d++)
+        for (d=0; d<dir.length; ++d)
         {
-            direction = dir[ d ];
+            direction = dir[d];
 
-            if ( direction & LEFT ) // horizontal shift left
+            if (direction & LEFT) // horizontal shift left
             {
                 tmp = shifted.slice(0);
-                for (i=0; i<l; i++)
+                for (i=0; i<l; ++i)
                 {
-                    if ( 0 === (i+1) % cols )
+                    if (0 === (i+1) % cols)
                     {
                         if (i+1-cols >= 0) shifted[i] = tmp[i+1-cols];
                     }
@@ -2523,12 +2547,12 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                     }
                 }
             }
-            else if ( direction & RIGHT ) // horizontal shift right
+            else if (direction & RIGHT) // horizontal shift right
             {
                 tmp = shifted.slice(0);
-                for (i=0; i<l; i++)
+                for (i=0; i<l; ++i)
                 {
-                    if ( 0 === (i+1) % cols )
+                    if (0 === (i+1) % cols)
                     {
                         if (i+1-cols >= 0) shifted[i+1-cols] = tmp[i];
                     }
@@ -2538,14 +2562,14 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                     }
                 }
             }
-            else if ( direction & UP ) // vertical shift up
+            else if (direction & UP) // vertical shift up
             {
                 shifted = [].concat(
                     shifted.slice(cols),
                     shifted.slice(0, cols)
                 );
             }
-            else if ( direction & DOWN ) // vertical shift down
+            else if (direction & DOWN) // vertical shift down
             {
                 shifted = [].concat(
                     shifted.slice(-cols),
@@ -2556,51 +2580,51 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         return shifted;
     },
 
-    transpose = function( a2d, rows, cols, dir ) {
-        if ( REVERSE !== dir && FORWARD !== dir ) return a2d;
+    transpose = function(a2d, rows, cols, dir) {
+        if (REVERSE !== dir && FORWARD !== dir) return a2d;
         var r, c, rc, rct, i, l = a2d.length, transposed = array(l), is_reverse = REVERSE === dir;
         c=0; r=0; rc=0; rct=0;
-        for (i=0; i<l; i++)
+        for (i=0; i<l; ++i)
         {
-            if ( c>=cols ) {c=0; r++; rc+=cols; rct=0;}
-            transposed[rct+r] = a2d[is_reverse?(rc+cols-1-c):(rc+c)];
-            c++; rct+=cols;
+            if (c >= cols) {c=0; ++r; rc+=cols; rct=0;}
+            transposed[rct+r] = a2d[is_reverse ? (rc+cols-1-c) : (rc+c)];
+            ++c; rct+=cols;
         }
         return transposed;
     },
 
-    mirror = function( a2d, rows, cols, dir ) {
-        if ( !(VERTICAL & dir) && !(HORIZONTAL & dir) ) return a2d;
+    mirror = function(a2d, rows, cols, dir) {
+        if (!(VERTICAL & dir) && !(HORIZONTAL & dir)) return a2d;
         var r, c, rc, i, l = a2d.length, mirrored = array(l), is_horizontal = !!(HORIZONTAL & dir);
         r=0; rc=0; c=0;
-        for (i=0; i<l; i++)
+        for (i=0; i<l; ++i)
         {
-            if ( c>=cols ) {c=0; r++; rc+=cols;}
-            mirrored[is_horizontal?(rc + cols-1-c):(l-cols-rc + c)] = a2d[rc + c];
-            c++;
+            if (c >= cols) {c=0; ++r; rc+=cols;}
+            mirrored[is_horizontal ? (rc + cols-1-c) : (l-cols-rc + c)] = a2d[rc + c];
+            ++c;
         }
         return mirrored;
     },
 
-    permute = function( a, p ) {
+    permute = function(a, p) {
         var i, l = a.length, permuted = array(l);
-        for (i=0; i<l; i++) permuted[i] = a[p[i]];
+        for (i=0; i<l; ++i) permuted[i] = a[p[i]];
         return permuted;
     },
 
-    swap = function( a2d, rows, cols, r1, c1, r2, c2 ) {
+    swap = function(a2d, rows, cols, r1, c1, r2, c2) {
         var tmp, i, cr1, cr2, cr = a2d.length;
-        if ( r1 !== r2 )
+        if (r1 !== r2)
         {
             cr1 = cols*r1; cr2 = cols*r2;
-            for (i=0; i<cols; i++)
+            for (i=0; i<cols; ++i)
             {
                 tmp = a2d[cr1 + i];
                 a2d[cr1 + i] = a2d[cr2 + i];
                 a2d[cr2 + i] = tmp;
             }
         }
-        if ( c1 !== c2 )
+        if (c1 !== c2)
         {
             for (i=0; i<cr; i+=cols)
             {
@@ -2612,29 +2636,29 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         return a2d;
     },
 
-    reassign = function( a, p ) {
+    reassign = function(a, p) {
         var i, l = a.length, reassigned = array(l);
-        for (i=0; i<l; i++) reassigned[i] = p[a[i]];
+        for (i=0; i<l; ++i) reassigned[i] = p[a[i]];
         return reassigned;
     },
 
-    generate_shuffle2d = function( rows, cols, type, options ) {
+    generate_shuffle2d = function(rows, cols, type, options) {
         var permutations, i1, i2, i3, i4, shuffle_options, i, dice, tmp,
-            randomized = !!(type&RANDOMIZE), shuffler;
+            randomized = !!(type & RANDOMIZE), shuffler;
 
-        if ( type & BLOCK )
+        if (type & BLOCK)
         {
-            permutations = shuffle( range( type & VERTICAL ? rows : cols ) );
+            permutations = shuffle(range(type & VERTICAL ? rows : cols));
         }
         else
         {
-            if ( options )
+            if (options)
             {
                 i1 = options.length > 0 ? options[0] : 0;
                 i2 = options.length > 1 ? options[1] : rows;
                 i3 = options.length > 2 ? options[2] : 0;
                 i4 = options.length > 3 ? options[3] : cols;
-                if ( options.length > 4 && options[4] )
+                if (options.length > 4 && options[4])
                 {
                     shuffle_options = options[4];
                     shuffler = shuffle_extended;
@@ -2655,7 +2679,7 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                 shuffler = shuffle;
             }
 
-            if ( type & VERTICAL )
+            if (type & VERTICAL)
             {
                 tmp = rows;
                 rows = cols;
@@ -2668,23 +2692,23 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                 i4 = tmp;
             }
 
-            permutations = array( rows );
-            for (i=0; i<rows; i++)
+            permutations = array(rows);
+            for (i=0; i<rows; ++i)
             {
-                permutations[i] = range( cols );
-                if ( i>=i1 && i<i2 )
+                permutations[i] = range(cols);
+                if (i>=i1 && i<i2)
                 {
-                    if ( type & SHIFT )
+                    if (type & SHIFT)
                     {
-                        if ( i>i1 ) permutations[i] = permutations[i-1].slice();
+                        if (i>i1) permutations[i] = permutations[i-1].slice();
                     }
                     else
                     {
-                        dice = randomized ? rows*random( ) : i;
-                        if ( dice >= i && dice < i+1 )
+                        dice = randomized ? rows*random() : i;
+                        if (dice >= i && dice < i+1)
                             permutations[i] = [].concat(
                                 permutations[i].slice(0,i3)
-                                ,shuffler( permutations[i].slice(i3,i4), shuffle_options )
+                                ,shuffler(permutations[i].slice(i3,i4), shuffle_options)
                                 ,permutations[i].slice(i4)
                             );
                     }
@@ -2694,79 +2718,79 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         return permutations;
     },
 
-    shuffle2d = function( a2d, rows, cols, type, permutations ) {
+    shuffle2d = function(a2d, rows, cols, type, permutations) {
         var shuffled, transposed = 0, i1, i2, i3, i4, shuffle_options, i, dice, tmp,
-            randomized = !!(type&RANDOMIZE);
+            randomized = !!(type & RANDOMIZE);
 
-        if ( type & PERMUTE )
+        if (type & PERMUTE)
         {
             shuffled = a2d;
-            if ( type & BLOCK )
+            if (type & BLOCK)
             {
-                if ( type & HORIZONTAL )
+                if (type & HORIZONTAL)
                 {
                     transposed = 1;
-                    shuffled = transpose( shuffled, rows, cols, FORWARD );
+                    shuffled = transpose(shuffled, rows, cols, FORWARD);
                     tmp = rows;
                     rows = cols;
                     cols = tmp;
                 }
-                shuffled = array1d( permute( array2d( shuffled, rows, cols ), permutations ) );
+                shuffled = array1d(permute(array2d(shuffled, rows, cols), permutations));
             }
             else
             {
-                if ( type & VERTICAL )
+                if (type & VERTICAL)
                 {
                     transposed = 1;
-                    shuffled = transpose( shuffled, rows, cols, FORWARD );
+                    shuffled = transpose(shuffled, rows, cols, FORWARD);
                     tmp = rows;
                     rows = cols;
                     cols = tmp;
                 }
                 i1 = 0;
-                for (i=0; i<rows; i++)
+                for (i=0; i<rows; ++i)
                 {
                     i2 = i1+cols;
                     shuffled = [].concat(
                         shuffled.slice(0,i1)
-                        ,permute( shuffled.slice(i1,i2), permutations[i] )
+                        ,permute(shuffled.slice(i1, i2), permutations[i])
                         ,shuffled.slice(i2)
                     );
                     i1+=cols;
                 }
             }
-            if ( transposed ) shuffled = transpose( shuffled, rows, cols, FORWARD );
+            if (transposed) shuffled = transpose(shuffled, rows, cols, FORWARD);
         }
         else
         {
             shuffled = a2d;
-            if ( type & VERTICAL )
+            if (type & VERTICAL)
             {
                 transposed = 1;
-                shuffled = transpose( shuffled, rows, cols, FORWARD );
+                shuffled = transpose(shuffled, rows, cols, FORWARD);
                 tmp = rows;
                 rows = cols;
                 cols = tmp;
             }
             i1 = 0;
             permutations = array(rows);
-            for (i=0; i<rows; i++)
+            for (i=0; i<rows; ++i)
             {
-                permutations[i] = range( cols );
+                permutations[i] = range(cols);
                 dice = randomized ? rows*random( ) : i;
-                if ( dice >= i && dice < i+1 )
+                if (dice >= i && dice < i+1)
                 {
-                    permutations[i] = shuffle( permutations[i] );
+                    permutations[i] = shuffle(permutations[i]);
                     i2 = i1+cols;
                     shuffled = [].concat(
                         shuffled.slice(0,i1)
-                        ,permute( shuffled.slice(i1,i2), permutations[i] )
+                        ,permute(shuffled.slice(i1, i2), permutations[i])
                         ,shuffled.slice(i2)
                     );
                 }
                 i1+=cols;
             }
-            if ( transposed ) shuffled = transpose( shuffled, rows, cols, FORWARD );
+            if (transposed) shuffled = transpose(shuffled, rows, cols, FORWARD);
         }
         return shuffled;
     },
@@ -2776,16 +2800,17 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
             rows = grid.row, cols = grid.col, squares = grid.squ,
             cell, row, col, squ, r, c, s, rl = rows.length
         ;
-        for (i=0; i<lc; i++)
+        for (i=0; i<lc; ++i)
         {
-            cell = cells[ i ];
-            row = rows[ cell.row ];
-            col = cols[ cell.col ];
-            squ = squares[ cell.squ ];
-            for (j=0; j<rl; j++)
+            cell = cells[i];
+            row = rows[cell.row];
+            col = cols[cell.col];
+            squ = squares[cell.squ];
+            for (j=0; j<rl; ++j)
             {
                 r = row[j]; c = col[j]; s = squ[j];
-                if ( (r.index !== cell.index && val[r.index] === val[cell.index]) || // same row
+                if (
+                    (r.index !== cell.index && val[r.index] === val[cell.index]) || // same row
                     (c.index !== cell.index && val[c.index] === val[cell.index]) || // same column
                     (s.index !== cell.index && val[s.index] === val[cell.index]) // same square
                 )
@@ -2798,68 +2823,130 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         return false;
     },*/
 
-    shifted_configuration = function( grid, randomized ) {
+    shifted_configuration = function(grid, randomized) {
         var r = grid.rows, c = grid.cols, sr = grid.subrows, sc = grid.subcols,
             nsr = sc, nsc = sr, si, sj, k, n, s, index, squares = array(nsr),
             shift_vert = [UP], shift_hor = [LEFT], permutations, basic_square
         ;
 
-        basic_square = array( nsc );
-        basic_square[ 0 ] = range(c);
+        basic_square = array(nsc);
+        basic_square[0] = range(c);
 
-        if ( randomized )
+        if (randomized)
         {
-            shift_vert = [randItem([UP,DOWN])];
-            shift_hor = [randItem([LEFT,RIGHT])];
+            shift_vert = [randItem([UP, DOWN])];
+            shift_hor = [randItem([LEFT, RIGHT])];
             permutations = generate_shuffle2d(sr, sc, RANDOMIZE|BLOCK|VERTICAL);
-            basic_square[ 0 ] = shuffle(basic_square[ 0 ]);
+            basic_square[0] = shuffle(basic_square[0]);
         }
 
-        for (k=1; k<nsc; k++)
+        for (k=1; k<nsc; ++k)
         {
             // shift the next sub-square (random) vertical shift
             basic_square[k] = shift(basic_square[k-1].slice(), sr, sc, shift_vert);
             // sub-shuffle the square in the other direction
             // in order to generate ALL possible sudoku configurations
-            if ( randomized ) basic_square[k] = shuffle2d(basic_square[k], sr, sc, RANDOMIZE|HORIZONTAL);
+            if (randomized) basic_square[k] = shuffle2d(basic_square[k], sr, sc, RANDOMIZE|HORIZONTAL);
         }
 
         // init grid sub-squares
-        for(si=0; si<nsr; si++)
+        for (si=0; si<nsr; ++si)
         {
             squares[si] = array(nsc);
-            for(sj=0; sj<nsc; sj++) squares[si][sj] = basic_square[sj].slice();
+            for (sj=0; sj<nsc; ++sj) squares[si][sj] = basic_square[sj].slice();
 
             // shift the next row of sub-squares (random) horizontal shift
             basic_square[0] = shift(basic_square[0], sr, sc, shift_hor);
             // sub-shuffle the square in the other direction
             // in order to generate ALL possible sudoku configurations
-            if ( randomized ) basic_square[0] = shuffle2d(basic_square[0], sr, sc, PERMUTE|BLOCK|VERTICAL, permutations);
-            for (k=1; k<nsc; k++)
+            if (randomized) basic_square[0] = shuffle2d(basic_square[0], sr, sc, PERMUTE|BLOCK|VERTICAL, permutations);
+            for (k=1; k<nsc; ++k)
             {
                 basic_square[k] = shift(basic_square[k], sr, sc, shift_hor);
-                if ( randomized ) basic_square[k] = shuffle2d(basic_square[k], sr, sc, PERMUTE|BLOCK|VERTICAL, permutations);
+                if (randomized) basic_square[k] = shuffle2d(basic_square[k], sr, sc, PERMUTE|BLOCK|VERTICAL, permutations);
             }
         }
 
         return squares;
     },
 
-    random_configuration = function( grid ) {
+    array_list = function(array) {
+        for (var list=null,prev=null,i=array.length-1; i>=0; --i)
+        {
+            list = {prev:null, next:null, val:array[i]};
+            if (prev)
+            {
+                prev.prev = list;
+                list.next = prev;
+            }
+            prev = list;
+        }
+        return list;
+    },
+
+    random_assignment = function random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj, i, j, vals, opts) {
+        if (opts && (1 < opts.solutions)) return true;
+        else if (si >= sc) return true;
+        else if (sj >= sr) return random_assignment(squares, rows, cols, squs, sr, sc, r, c, si+1, 0, 0, 0, true, opts);
+        else if (squares[si][sj].done) return random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj+1, 0, 0, true, opts);
+        else if (j >= sc) return random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj, i+1, 0, vals, opts);
+        else if (i >= sr) return random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj+1, 0, 0, true, opts);
+        else if ((opts && (null != opts.clues[si][sj][i*sc+j])) || (!opts && (null != squares[si][sj][i*sc+j]))) return random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj, i, j+1, vals, opts);
+        if (true === vals) vals = array_list(shuffle(range(c)));
+        var index = i*sc+j, row = si*sr+i, col = sj*sc+j, squ = si*sr+sj,
+            v = vals, n, m, solutions = (opts ? opts.solutions : 0) || 0,
+            new_opts = opts ? {solutions:solutions, clues:opts.clues} : null;
+        while (v)
+        {
+            n = v.val; m = (1 << n);
+            if ((rows[row]&m) || (cols[col]&m) || (squs[squ]&m))
+            {
+                v = v.next;
+                continue;
+            }
+            rows[row] |= m; cols[col] |= m; squs[squ] |= m;
+            if (v.prev) v.prev.next = v.next;
+            if (v.next) v.next.prev = v.prev;
+            if (random_assignment(squares, rows, cols, squs, sr, sc, r, c, si, sj, i, j+1, vals, new_opts))
+            {
+                if (0 === solutions)
+                {
+                    squares[si][sj][index] = n;
+                    solutions = 1;
+                }
+                else
+                {
+                    ++solutions;
+                }
+                if (new_opts)
+                {
+                    opts.solutions = stdMath.max(solutions, new_opts.solutions);
+                    new_opts.solutions = 1;
+                }
+                if (!opts || (1 < opts.solutions)) return true;
+            }
+            m = ~m; rows[row] &= m; cols[col] &= m; squs[squ] &= m;
+            if (v.prev) v.prev.next = v;
+            if (v.next) v.next.prev = v;
+            v = v.next;
+        }
+        return 0 < solutions;
+    },
+
+    random_configuration = function(grid) {
         var r = grid.rows, c = grid.cols, sr = grid.subrows, sc = grid.subcols,
             nsr = sc, nsc = sr, si, sj, k, n, s, index, squares = array(nsr),
-            rows = new ArrayUint32(c), cols = new ArrayUint32(c), squs = new ArrayUint32(c),
-            random_assignment_rest
+            rows = new ArrayUint32(c), cols = new ArrayUint32(c), squs = new ArrayUint32(c)
         ;
 
         // binary lookup cache for already assigned values on rows/cols/squares
-        for(k=0; k<c; k++) { rows[k] = 0; cols[k] = 0; squs[k] = 0; }
+        for (k=0; k<c; ++k) {rows[k] = 0; cols[k] = 0; squs[k] = 0;}
 
         // init grid sub-squares
-        for(si=0; si<nsr; si++)
+        for (si=0; si<nsr; ++si)
         {
             squares[si] = array(nsc);
-            for(sj=0; sj<nsc; sj++)
+            for (sj=0; sj<nsc; ++sj)
             {
                 squares[si][sj] = array(c);
                 squares[si][sj].done = false;
@@ -2867,11 +2954,11 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         }
 
         // completely randomize grid sub-squares which are independent of each other (eg along diagonal) and mark as done
-        for(si=0,k=min(nsr,nsc); si<k; si++)
+        for (si=0,k=min(nsr,nsc); si<k; ++si)
         {
             squares[si][si] = shuffle(range(c));
             s = squares[si][si]; s.done = true;
-            for(index=0; index<c; index++)
+            for (index=0; index<c; ++index)
             {
                 n = (1 << s[index]);
                 rows[si*sr+stdMath.floor(index/sc)] |= n;
@@ -2880,102 +2967,117 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
             }
         }
 
-        random_assignment_rest = function random_assignment_rest( si, sj, i, j ) {
-            if ( si >= sc ) return true;
-            else if ( sj >= sr ) return random_assignment_rest(si+1, 0, 0, 0);
-            else if ( squares[si][sj].done ) return random_assignment_rest(si, sj+1, 0, 0);
-            else if ( j >= sc ) return random_assignment_rest(si, sj, i+1, 0);
-            else if ( i >= sr ) return random_assignment_rest(si, sj+1, 0, 0);
-            var index = i*sc+j, row = si*sr+i, col = sj*sc+j, squ = si*sr+sj, vals = shuffle(range(c)), v, n, m;
-            for(v=0; v<c; v++)
-            {
-                n = vals[v]; m = (1 << n);
-                if ( (rows[row]&m) || (cols[col]&m) || (squs[squ]&m) ) continue;
-                rows[row] |= m; cols[col] |= m; squs[squ] |= m;
-                if ( random_assignment_rest(si, sj, i, j+1) )
-                {
-                    squares[si][sj][index] = n;
-                    return true;
-                }
-                m = ~m; rows[row] &= m; cols[col] &= m; squs[squ] &= m;
-            }
-            return false;
-        };
-
         // now find the values to rest sub-squares completely at random, respecting already done squares
-        return random_assignment_rest(0, 0, 0, 0) ? squares : null;
+        return random_assignment(squares, rows, cols, squs, sr, sc, r, c, 0, 0, 0, 0, true) ? squares : null;
     },
 
-    sudoku_grid = function( grid, unique ) {
+    empty_configuration = function(grid) {
+        var r = grid.rows, c = grid.cols, sr = grid.subrows, sc = grid.subcols,
+            nsr = sc, nsc = sr, si, sj, k, n, s, index, squares = array(nsr), empty
+        ;
+
+        empty = new Array(c);
+        //for (k=0; k<c; ++k) empty[k] = '';
+
+        // init grid sub-squares
+        for (si=0; si<nsr; ++si)
+        {
+            squares[si] = array(nsc);
+            for (sj=0; sj<nsc; ++sj) squares[si][sj] = empty.slice();
+        }
+
+        return squares;
+    },
+
+    make_grid = function(grid, configuration, clues) {
         var r = grid.rows, c = grid.cols, l = r*c,
             sr = grid.subrows, sc = grid.subcols,
             nsr = sc, nsc = sr, grid_squs, grid_rows, grid_cols,
             i, j, si, sj, sii, sjj, ii, k, index, cell,
-            cells, values, configuration = null, randomized = false !== unique
+            cells, values
         ;
-
-        if ( randomized )
-        {
-            configuration = random_configuration( grid );
-            if ( configuration ) randomized = false;
-        }
-        if ( !configuration )
-        {
-            configuration = shifted_configuration( grid, randomized );
-        }
-
-        grid.alphabet_map = range( c );
+        grid.alphabet_map = range(c);
         grid.cells = cells = array(l); grid.values = values = array(l);
         grid.squ = grid_squs = array(c); grid.row = grid_rows = array(c); grid.col = grid_cols = array(c);
 
-        for (si=0,sii=0; si<nsr; si++,sii+=sr)
+        for (si=0,sii=0; si<nsr; ++si,sii+=sr)
         {
-            for (sj=0,sjj=0; sj<nsc; sj++,sjj+=sc)
+            for (sj=0,sjj=0; sj<nsc; ++sj,sjj+=sc)
             {
                 ii = 0;
-                for (i=0; i<sr; i++)
+                for (i=0; i<sr; ++i)
                 {
-                    for (j=0; j<sc; j++)
+                    for (j=0; j<sc; ++j)
                     {
                         index = (sii+i)*c + sjj+j;
-                        cells[ index ] = cell = {
+                        values[index] = configuration[si][sj][ii] || 0;
+                        cells[index] = cell = {
                             index: index, squ: sii+sj,
                             row: sii+i, col: sjj+j,
                             squ_row: i, squ_col: j,
                             row_index: sjj+j, col_index: sii+i, squ_index: ii,
-                            clue: true, almost_clue: false,
+                            clue: (clues && null != clues[si][sj][ii]) || (!clues && null != configuration[si][sj][ii]), almost_clue: false,
                             alternatives: null
                         };
-                        values[ index ] = configuration[si][sj][ii];
-                        if ( !grid_cols[cell.col] ) grid_cols[cell.col] = array(c);
-                        if ( !grid_rows[cell.row] ) grid_rows[cell.row] = array(c);
-                        if ( !grid_squs[cell.squ] ) grid_squs[cell.squ] = array(c);
+                        if (!grid_cols[cell.col]) grid_cols[cell.col] = array(c);
+                        if (!grid_rows[cell.row]) grid_rows[cell.row] = array(c);
+                        if (!grid_squs[cell.squ]) grid_squs[cell.squ] = array(c);
                         grid_cols[cell.col][cell.col_index] = grid_rows[cell.row][cell.row_index] = grid_squs[cell.squ][ii] = cell;
-                        ii++;
+                        ++ii;
                     }
                 }
             }
         }
-        //if ( duplicates(grid) ) console.log('duplicates after <generation>');
+        return grid;
+    },
+
+    sudoku_grid = function(grid, type) {
+        if (null == type) type = 'unique'
+        var r = grid.rows, c = grid.cols, l = r*c,
+            sr = grid.subrows, sc = grid.subcols,
+            i, j, si, sj,
+            configuration = null,
+            randomized = 'unique' === type
+        ;
+
+        if ('empty' === type)
+        {
+            configuration = empty_configuration(grid);
+        }
+        else
+        {
+            if (randomized)
+            {
+                configuration = random_configuration(grid);
+                if (configuration) randomized = false;
+            }
+            if (!configuration)
+            {
+                configuration = shifted_configuration(grid, randomized);
+            }
+        }
+
+        make_grid(grid, configuration);
+        //if (duplicates(grid)) console.log('duplicates after <generation>');
 
         // apply some more sudoku symmetries uniformly random to whole grid this time
         // to try generate ALL valid configurations with probability (i.e a unique grid)
-        if ( randomized )
+        if (randomized)
         {
             // random alphabet permutation
-            //grid.values = reassign( grid.values, shuffle( grid.alphabet_map, true ) );
-            //if ( duplicates(grid) ) console.log('duplicates after <reassign>');
+            //grid.values = reassign(grid.values, shuffle(grid.alphabet_map, true));
+            //if (duplicates(grid)) console.log('duplicates after <reassign>');
 
             // random (sub-)row/(sub-)column swaps
             for (i=0; i<r; i+=sr)
             {
                 for (j=0; j<c; j+=sc)
                 {
-                    for (si=0; si<sr; si++)
+                    for (si=0; si<sr; ++si)
                     {
-                        for (sj=0; sj<sc; sj++)
+                        for (sj=0; sj<sc; ++sj)
                         {
-                            swap( grid.values, r, c,
+                            swap(grid.values, r, c,
                                 // generalization of Fisher-Yates-Knuth unbiased permutation
                                 i + si, j + sj,
                                 i + rand(0, si), j + rand(0, sj)
@@ -2984,24 +3086,24 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                     }
                 }
             }
-            //if ( duplicates(grid) ) console.log('duplicates after <swap>');
+            //if (duplicates(grid)) console.log('duplicates after <swap>');
 
             // random mirroring
-            grid.values = mirror( grid.values, r, c, randItem([HORIZONTAL, NONE, VERTICAL]) );
-            //if ( duplicates(grid) ) console.log('duplicates after <mirror>');
+            grid.values = mirror(grid.values, r, c, randItem([HORIZONTAL, NONE, VERTICAL]));
+            //if (duplicates(grid)) console.log('duplicates after <mirror>');
 
             // random transposition
-            if ( (r === c) && (sr === sc) )
+            if ((r === c) && (sr === sc))
             {
-                grid.values = transpose( grid.values, r, c, randItem([REVERSE, NONE, FORWARD]) );
-                //if ( duplicates(grid) ) console.log('duplicates after <transpose>');
+                grid.values = transpose(grid.values, r, c, randItem([REVERSE, NONE, FORWARD]));
+                //if (duplicates(grid)) console.log('duplicates after <transpose>');
             }
         }
 
         return grid;
     },
 
-    sudoku_stats = function( grid, difficulty, numLevels ) {
+    sudoku_stats = function(grid, difficulty, numLevels) {
         //var min9x9Clues = 17;
         difficulty = clamp(difficulty, 1, numLevels) - 1; numLevels -= 1;
         var numElements = grid.cells.length, sudokuDim = grid.rows,
@@ -3025,7 +3127,7 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         };
     },
 
-    compute_num_solutions = function( grid, empty, breakFast ) {
+    compute_num_solutions = function(grid, empty, breakFast) {
         var cells = grid.cells, val = grid.values,
             rows = grid.row, cols = grid.col, squares = grid.squ,
             row, col, squ, r, c, s, i, j, r_v, c_v, s_v,
@@ -3037,56 +3139,56 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         ;
         breakFast = false !== breakFast;
         // pre-allocate stacks and do "soft" push/pop operations (faster?)
-        stack = le > 0 ? new Array( le ) : []; sl = 0;
+        stack = le > 0 ? new Array(le) : []; sl = 0;
         // recursion unrolled into iterative solution walking (faster)
         do
         {
-            if ( 0 < le && sl < le )
+            if (0 < le && sl < le)
             {
-                cell = empty[ sl ]; cell_index = cell.index;
+                cell = empty[sl]; cell_index = cell.index;
                 // inline compute_cell_alternatives
                 // use bitwise arithmetic, faster?
                 alternatives = (((1 << rl)>>>0) - 1)>>>0;
                 row = rows[cell.row]; col = cols[cell.col]; squ = squares[cell.squ];
-                for (i=0; i<rl; i++)
+                for (i=0; i<rl; ++i)
                 {
                     r = row[i]; c = col[i]; s = squ[i];
-                    if ( r.clue && r.index !== cell_index && (alternatives & (r_v = (1<<val[r.index])>>>0)) )
+                    if (r.clue && r.index !== cell_index && (alternatives & (r_v = (1<<val[r.index])>>>0)))
                     {
                         alternatives = (alternatives & ((~r_v)>>>0))>>>0;
-                        if ( 0 === alternatives ) break;
+                        if (0 === alternatives) break;
                     }
-                    if ( c.clue && c.index !== cell_index && (alternatives & (c_v = (1<<val[c.index])>>>0)) )
+                    if (c.clue && c.index !== cell_index && (alternatives & (c_v = (1<<val[c.index])>>>0)))
                     {
                         alternatives = (alternatives & ((~c_v)>>>0))>>>0;
-                        if ( 0 === alternatives ) break;
+                        if (0 === alternatives) break;
                     }
-                    if ( s.clue && s.index !== cell_index && (alternatives & (s_v = (1<<val[s.index])>>>0)) )
+                    if (s.clue && s.index !== cell_index && (alternatives & (s_v = (1<<val[s.index])>>>0)))
                     {
                         alternatives = (alternatives & ((~s_v)>>>0))>>>0;
-                        if ( 0 === alternatives ) break;
+                        if (0 === alternatives) break;
                     }
                 }
                 // end inline compute_cell_alternatives
 
-                if ( 0 === alternatives )
+                if (0 === alternatives)
                 {
-                    if ( !sl ) return numSolutions;
+                    if (!sl) return numSolutions;
                     else
                     {
-                        while ( sl > 0 && (entry=stack[sl-1]) && (0 === entry[1]) )
+                        while (sl > 0 && (entry=stack[sl-1]) && (0 === entry[1]))
                         {
-                            entry[ 0 ].clue = false;
-                            val[entry[ 0 ].index] = entry[ 2 ];
-                            stack[ --sl ] = undef;
+                            entry[0].clue = false;
+                            val[entry[0].index] = entry[2];
+                            stack[--sl] = undef;
                         }
-                        if ( sl > 0 )
+                        if (sl > 0)
                         {
-                            entry[ 0 ].clue = true;
-                            alternatives = entry[ 1 ];
+                            entry[0].clue = true;
+                            alternatives = entry[1];
                             alt = 0xFFFF0000&alternatives?(0xFF000000&alternatives?24+BINLOG_256[alternatives>>>24]:16+BINLOG_256[alternatives>>>16]):(0x0000FF00&alternatives?8+BINLOG_256[alternatives>>>8]:BINLOG_256[alternatives]);
-                            entry[ 1 ] = (alternatives & (~((1<<alt)>>>0)>>>0))>>>0;
-                            val[entry[ 0 ].index] = alt;
+                            entry[1] = (alternatives & (~((1<<alt)>>>0)>>>0))>>>0;
+                            val[entry[0].index] = alt;
                         }
                         continue;
                     }
@@ -3102,12 +3204,12 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                 // no empty cells left, 0 or 1 solution if grid is sudoku consistent
                 // inline compute_num_consistent_solutions
                 numConsistentSolutions = 1;
-                for (j=0; j<lcc; j++)
+                for (j=0; j<lcc; ++j)
                 {
-                    cell = cells_to_check[ j ]; cell_index = cell.index; cell_val = val[cell_index];
+                    cell = cells_to_check[j]; cell_index = cell.index; cell_val = val[cell_index];
                     //        same  row,            column,         square
                     row = rows[cell.row]; col = cols[cell.col]; squ = squares[cell.squ];
-                    for (i=0; i<rl; i++)
+                    for (i=0; i<rl; ++i)
                     {
                         r = row[i]; c = col[i]; s = squ[i];
                         if (
@@ -3127,38 +3229,96 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                 // break fast if numSolutions > 1
                 if (breakFast && numSolutions > 1)
                 {
-                    while ( sl > 0 )
+                    while (sl > 0)
                     {
                         entry = stack[--sl];
-                        entry[ 0 ].clue = false;
-                        val[entry[ 0 ].index] = entry[ 2 ];
-                        stack[ sl ] = undef;
+                        entry[0].clue = false;
+                        val[entry[0].index] = entry[2];
+                        stack[sl] = undef;
                     }
                     stack = null;
                     return numSolutions;
                 }
 
-                while ( sl > 0 && (entry=stack[sl-1]) && (0 === entry[1]) )
+                while (sl > 0 && (entry=stack[sl-1]) && (0 === entry[1]))
                 {
-                    entry[ 0 ].clue = false;
-                    val[entry[ 0 ].index] = entry[ 2 ];
+                    entry[0].clue = false;
+                    val[entry[0].index] = entry[2];
                     stack[--sl] = undef;
                 }
-                if ( sl > 0 )
+                if (sl > 0)
                 {
-                    entry[ 0 ].clue = true;
-                    alternatives = entry[ 1 ];
+                    entry[0].clue = true;
+                    alternatives = entry[1];
                     alt = 0xFFFF0000&alternatives?(0xFF000000&alternatives?24+BINLOG_256[alternatives>>>24]:16+BINLOG_256[alternatives>>>16]):(0x0000FF00&alternatives?8+BINLOG_256[alternatives>>>8]:BINLOG_256[alternatives]);
-                    entry[ 1 ] = (alternatives & (~((1<<alt)>>>0)>>>0))>>>0;
-                    val[entry[ 0 ].index] = alt;
+                    entry[1] = (alternatives & (~((1<<alt)>>>0)>>>0))>>>0;
+                    val[entry[0].index] = alt;
                 }
             }
-        } while ( sl > 0 );
+        } while (sl > 0);
         stack = null;
         return numSolutions;
     },
 
-    compute_num_alternatives = function( grid, stats, empty_cells ) {
+    sudoku_solve = function(grid) {
+        var r = grid.rows, c = grid.cols, sr = grid.subrows, sc = grid.subcols, l = r*c,
+            nsr = sc, nsc = sr, si, sj, i, j, k, m, s, index, squares = array(nsr), clues = array(nsr),
+            rows = new ArrayUint32(c), cols = new ArrayUint32(c), squs = new ArrayUint32(c),
+            cell, row, col, squ, res, opts
+        ;
+
+        // binary lookup cache for already assigned values on rows/cols/squares
+        for (k=0; k<c; ++k) {rows[k] = 0; cols[k] = 0; squs[k] = 0;}
+
+        // init grid sub-squares
+        for (si=0; si<nsr; ++si)
+        {
+            squares[si] = array(nsc);
+            clues[si] = array(nsc);
+            for (sj=0; sj<nsc; ++sj)
+            {
+                squares[si][sj] = array(c);
+                squares[si][sj].done = false;
+                clues[si][sj] = array(c);
+            }
+        }
+        for (i=0; i<l; ++i)
+        {
+            cell = grid.cells[i];
+            if (cell.clue)
+            {
+                j = grid.values[i];
+                if (("string" === typeof j) && ("" !== j))
+                {
+                    j = grid.alphabet ? grid.alphabet.indexOf(j) : -1;
+                }
+                if (("number" === typeof j) && (0 <= j))
+                {
+                    m = (1 << j);
+                    row = cell.row;
+                    col = cell.col;
+                    squ = cell.squ;
+                    si = stdMath.floor(row / sr);
+                    sj = stdMath.floor(col / sc);
+                    k = (row % sr) * sc + (col % sc);
+                    //console.log('clue', grid.alphabet.charAt(j), row, col, si, sj, k);
+                    if ((rows[row]&m) || (cols[col]&m) || (squs[squ]&m)) return 0;
+                    rows[row] |= m;
+                    cols[col] |= m;
+                    squs[squ] |= m;
+                    clues[si][sj][k] = j;
+                    squares[si][sj][k] = j;
+                }
+            }
+        }
+
+        // now find solution at random if unique, respecting given clues
+        opts = {solutions:0, clues:clues};
+        random_assignment(squares, rows, cols, squs, sr, sc, r, c, 0, 0, 0, 0, true, opts);
+        return 1 === opts.solutions ? make_grid(grid, squares, clues) : opts.solutions;
+    },
+
+    compute_num_alternatives = function(grid, stats, empty_cells) {
         var rl = grid.rows, alternatives, num_alternatives, ci, a, i, j,
             rows = grid.row, cols = grid.col, squares = grid.squ,
             row, col, squ, r, c, s, r_v, c_v, s_v, val = grid.values,
@@ -3173,80 +3333,80 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
         // correlates better with sudoku difficulty raters
 
         // compute direct alternatives (and possible singles)
-        for (ci=0; ci<le; ci++)
+        for (ci=0; ci<le; ++ci)
         {
             cell = empty_cells[ci]; cell_index = cell.index;
             cell.almost_clue = false;
             // use bitwise arithmetic, faster?
             alternatives = (((1 << rl)>>>0) - 1)>>>0; num_alternatives = rl;
             row = rows[cell.row]; col = cols[cell.col]; squ = squares[cell.squ];
-            for (i=0; i<rl; i++)
+            for (i=0; i<rl; ++i)
             {
                 r = row[i]; c = col[i]; s = squ[i];
-                if ( r.clue && r.index !== cell_index && (alternatives & (r_v = (1<<val[r.index])>>>0)) )
+                if (r.clue && r.index !== cell_index && (alternatives & (r_v = (1<<val[r.index])>>>0)))
                 {
                     alternatives = (alternatives & ((~r_v)>>>0))>>>0;
-                    num_alternatives--;
-                    if ( 0 === alternatives ) break;
+                    --num_alternatives;
+                    if (0 === alternatives) break;
                 }
-                if ( c.clue && c.index !== cell_index && (alternatives & (c_v = (1<<val[c.index])>>>0)) )
+                if (c.clue && c.index !== cell_index && (alternatives & (c_v = (1<<val[c.index])>>>0)))
                 {
                     alternatives = (alternatives & ((~c_v)>>>0))>>>0;
-                    num_alternatives--;
-                    if ( 0 === alternatives ) break;
+                    --num_alternatives;
+                    if (0 === alternatives) break;
                 }
-                if ( s.clue && s.index !== cell_index && (alternatives & (s_v = (1<<val[s.index])>>>0)) )
+                if (s.clue && s.index !== cell_index && (alternatives & (s_v = (1<<val[s.index])>>>0)))
                 {
                     alternatives = (alternatives & ((~s_v)>>>0))>>>0;
-                    num_alternatives--;
-                    if ( 0 === alternatives ) break;
+                    --num_alternatives;
+                    if (0 === alternatives) break;
                 }
             }
             cell.current_alternatives = alternatives;
             cell.current_num_alternatives = num_alternatives;
-            //if ( 1 === cell.current_num_alternatives ) cell.almost_clue = true;
+            //if (1 === cell.current_num_alternatives) cell.almost_clue = true;
         }
 
         // compute indirect alternatives  (i.e "hidden" singles)
-        for (ci=0; ci<le; ci++)
+        for (ci=0; ci<le; ++ci)
         {
             cell = empty_cells[ci];
-            if ( cell.current_num_alternatives > 1 )
+            if (cell.current_num_alternatives > 1)
             {
                 cell_index = cell.index;
-                squ = squares[cell.squ]; empties = filter( squ, is_empty );
+                squ = squares[cell.squ]; empties = filter(squ, is_empty);
                 alternatives = cell.current_alternatives;
                 while (0 !== alternatives)
                 {
                     a = 0xFFFF0000&alternatives?(0xFF000000&alternatives?24+BINLOG_256[alternatives>>>24]:16+BINLOG_256[alternatives>>>16]):(0x0000FF00&alternatives?8+BINLOG_256[alternatives>>>8]:BINLOG_256[alternatives]);
                     alternatives = (alternatives & (~((1<<a)>>>0)>>>0))>>>0;
                     num_empties = empties.length; num_matches = 0;
-                    for (i=0; i<empties.length; i++)
+                    for (i=0; i<empties.length; ++i)
                     {
                         s = empties[i];
-                        if ( s.index === cell_index )
+                        if (s.index === cell_index)
                         {
-                            num_empties--;
+                            --num_empties;
                             continue;
                         }
                         j = {matches: 0, val: val, v: a};
-                        operate( rows[s.row].concat(cols[s.col]), filter_and_map_clue, j );
-                        if ( !j.matches ) break;
-                        num_matches++;
+                        operate(rows[s.row].concat(cols[s.col]), filter_and_map_clue, j);
+                        if (!j.matches) break;
+                        ++num_matches;
                     }
                     // this value cannot be assigned anywhere else on same sub-square
                     // thus is hidden single and num of alternatives changes
-                    if ( num_matches === num_empties )
+                    if (num_matches === num_empties)
                     {
                         cell.current_num_alternatives = 1;
                         break;
                     }
                 }
             }
-            //if ( 1 === cell.current_num_alternatives ) cell.almost_clue = true;
+            //if (1 === cell.current_num_alternatives) cell.almost_clue = true;
             sum += cell.current_num_alternatives;
-            if (1===cell.current_num_alternatives) num_singles += 1;
-            //else if (0===cell.current_num_alternatives) no_alternatives += 1;
+            if (1 === cell.current_num_alternatives) num_singles += 1;
+            //else if (0 === cell.current_num_alternatives) no_alternatives += 1;
         }
 
         stats.avg_alternatives = le ? sum/le : 0;
@@ -3257,19 +3417,19 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
     },
 
     // http://stackoverflow.com/questions/10488719/generating-a-sudoku-of-a-desired-difficulty/28699821#28699821
-    sudokuAsyncSinglePass = function( grid, difficulty, symmetry ) {
+    sudoku_async_singlepass = function(grid, difficulty, symmetry) {
         var numLevels = 5, numRemovals, cells, clues, empties,
             stats, Sym, i, cl, c, sc, rows, cols
         ;
 
-        stats = sudoku_stats( sudoku_grid( grid ), difficulty, numLevels );
+        stats = sudoku_stats(sudoku_grid(grid), difficulty, numLevels);
         cells = grid.cells; cl = cells.length; rows = grid.rows; cols = grid.cols;
         // symmetrics
-        Sym = array( cl );
-        for (i=0; i<cl; i++)
+        Sym = array(cl);
+        for (i=0; i<cl; ++i)
         {
             c = cells[i];
-            Sym[ i ] = [
+            Sym[i] = [
                 c, /* cell */
                 cells[c.row*cols + cols-1-c.col], /* horizontal */
                 cells[(rows-1-c.row)*cols + c.col], /* vertical */
@@ -3277,23 +3437,23 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
             ];
         }
         symmetry = 4 === symmetry ? randItem([1, 2, 3]) : symmetry;
-        clues = shuffle( filter( cells, is_clue ) );
-        empties = filter( cells, is_empty );
+        clues = shuffle(filter(cells, is_clue));
+        empties = filter(cells, is_empty);
         stats.max_avg_alternatives = -10;
         // remove some initial clues at random
         // to speed-up further process and also create more randomized configurations
         numRemovals = ceil(0.1*clues.length);
-        while ( numRemovals-- > 0 )
+        while (numRemovals-- > 0)
         {
-            c = clues.shift( ); c.clue = false;
-            if ( symmetry > 0 )
+            c = clues.shift(); c.clue = false;
+            if (symmetry > 0)
             {
-                sc = Sym[ c.index ][ symmetry ];
-                if ( sc.index !== c.index && sc.clue )
+                sc = Sym[c.index][symmetry];
+                if (sc.index !== c.index && sc.clue)
                 {
                     sc.clue = false;
-                    clues[clues.indexOf(sc)] = clues[clues.length-1]; clues.pop( );
-                    numRemovals--
+                    clues[clues.indexOf(sc)] = clues[clues.length-1]; clues.pop();
+                    --numRemovals;
                 }
                 else
                 {
@@ -3301,37 +3461,37 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                 }
             }
         }
-        empties = filter( cells, is_empty );
+        empties = filter(cells, is_empty);
         //console.log([stats.num_clues_initial, stats.num_clues_final].join(' -> '));
         //console.log([stats.min_alternatives, stats.max_alternatives].join(' -> '));
 
         // a no-backtracking algorithm to find desired sudoku
         // matching given difficulty (within a range margin)
         // with high probability it returns a sudoku configuration of desired difficulty
-        return function( ) {
+        return function() {
             var numClues = clues.length, cell, symcell, k, candidates = [], empty,
                 avg_alternatives, min_alternatives, max_alternatives, entry;
 
-            if ( numClues > stats.num_clues_final )
+            if (numClues > stats.num_clues_final)
             {
                 min_alternatives = stats.min_alternatives;
                 max_alternatives = stats.max_alternatives;
 
-                for (k=0; k<numClues; k++)
+                for (k=0; k<numClues; ++k)
                 {
-                    cell = clues[ k ]; cell.clue = false;
-                    symcell = symmetry > 0 ? Sym[ cell.index ][ symmetry ] : null;
-                    if ( symcell && (symcell.index !== cell.index) && symcell.clue ) symcell.clue = false;
+                    cell = clues[k]; cell.clue = false;
+                    symcell = symmetry > 0 ? Sym[cell.index][symmetry] : null;
+                    if (symcell && (symcell.index !== cell.index) && symcell.clue) symcell.clue = false;
                     else symcell = null;
 
                     // use empty list ordered by index,
                     // for some reason using the empty_cells in compute_num_solutions
                     // instead of cells.filter(is_empty) takes much more time
                     // while the actual difference is just the ordering
-                    empty = filter( cells, is_empty );//merge_unique_by_key('index', empties, symcell?[cell,symcell]:[cell]);
+                    empty = filter(cells, is_empty);//merge_unique_by_key('index', empties, symcell?[cell,symcell]:[cell]);
 
                     // current configuration has unique consistent solution
-                    if ( 1 === compute_num_solutions( grid, empty, true ) )
+                    if (1 === compute_num_solutions(grid, empty, true))
                     {
                         compute_num_alternatives(grid, stats, empty);
                         avg_alternatives = stats.avg_alternatives;
@@ -3339,46 +3499,46 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
 
                         // maintain an average range of alternatives per empty cell
                         // correlates to current sudoku difficulty (along with minimum number of clues)
-                        if ( stats.max_avg_alternatives < min_alternatives )
+                        if (stats.max_avg_alternatives < min_alternatives)
                         {
-                            if ( avg_alternatives >= stats.max_avg_alternatives )
+                            if (avg_alternatives >= stats.max_avg_alternatives)
                             {
                                 stats.max_avg_alternatives = avg_alternatives;
-                                candidates[PUT_FIRST]( entry );
+                                candidates[PUT_FIRST](entry);
                             }
                             else
                             {
-                                candidates[PUT_LAST]( entry );
+                                candidates[PUT_LAST](entry);
                             }
                         }
-                        else if ( avg_alternatives <= max_alternatives )
+                        else if (avg_alternatives <= max_alternatives)
                         {
-                            if ( avg_alternatives > stats.max_avg_alternatives ) stats.max_avg_alternatives = avg_alternatives;
-                            if ( candidates.length )
+                            if (avg_alternatives > stats.max_avg_alternatives) stats.max_avg_alternatives = avg_alternatives;
+                            if (candidates.length)
                             {
-                                if ( avg_alternatives >= candidates[0][0] )
-                                    candidates[PUT_FIRST]( entry );
+                                if (avg_alternatives >= candidates[0][0])
+                                    candidates[PUT_FIRST](entry);
                                 else
-                                    candidates[PUT_LAST]( entry );
+                                    candidates[PUT_LAST](entry);
                             }
                             else
                             {
-                                candidates[PUT_FIRST]( entry );
+                                candidates[PUT_FIRST](entry);
                             }
                         }
                         else
                         {
-                            candidates[PUT_LAST]( entry );
+                            candidates[PUT_LAST](entry);
                         }
                     }
                     //empty = null;
                     cell.clue = true;
-                    if ( symcell ) symcell.clue = true;
+                    if (symcell) symcell.clue = true;
                 }
 
                 // no further unique solution found for given grid && difficulty
                 // return any (sub-)solution up to now
-                if ( !candidates.length )
+                if (!candidates.length)
                 {
                     //console.log([clues.length, stats.max_avg_alternatives].join(' | '));
                     return true;
@@ -3387,17 +3547,17 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
                 {
                     k = candidates[0][1]; cell = candidates[0][2]; symcell = candidates[0][3];
                     cell.clue = false;
-                    clues[k] = clues[clues.length-1]; clues.pop( );
-                    if ( symcell )
+                    clues[k] = clues[clues.length-1]; clues.pop();
+                    if (symcell)
                     {
                         symcell.clue = false;
-                        clues[clues.indexOf(symcell)] = clues[clues.length-1]; clues.pop( );
+                        clues[clues.indexOf(symcell)] = clues[clues.length-1]; clues.pop();
                     }
                     numClues = clues.length;
-                    empties = filter( cells, is_empty );//merge_unique_by_key('index', empties, symcell?[cell,symcell]:[cell]);
+                    empties = filter(cells, is_empty);//merge_unique_by_key('index', empties, symcell?[cell,symcell]:[cell]);
                 }
                 // continue
-                if ( numClues > stats.num_clues_final ) return false;
+                if (numClues > stats.num_clues_final) return false;
             }
             //console.log([clues.length, stats.max_avg_alternatives].join(' | '));
             return true;
@@ -3407,33 +3567,39 @@ var isWorker = Sudoku.isWorker, stdMath = Math,
 
 //
 // Sudoku Sudoku Compiler Class
-Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
+Sudoku.SudokuCompiler = Sudoku.Class(Compiler, {
 
-    constructor: function( grid ) {
+    constructor: function(grid) {
         var self = this;
 
         self.$super('constructor', 'Sudoku.SudokuCompiler');
 
-        if ( isWorker )
+        if (isWorker)
         {
             // use a shorter interval in worker compiler for faster performance
             self
-                .listen("generateSudoku", function(data){
-                    self.send( "generateSudoku", {solution: sudoku_grid(data.data, true)} );
+                .listen("generate", function(data) {
+                    self.send("generate", {solution: sudoku_grid(data.data, 'unique')});
                 })
-                .listen("compile", function(data){
+                .listen("generateEmpty", function(data) {
+                    self.send("generateEmpty", {solution: sudoku_grid(data.data, 'empty')});
+                })
+                .listen("solve", function(data) {
+                    self.send("solve", {solution: sudoku_solve(data.data)});
+                })
+                .listen("compile", function(data) {
                     self.data = data.data;
                     self.solution = self.data;
-                    self.compileAsync( );
+                    self.doAsync("compile");
                 })
-                .listen("stop", function(data){
+                .listen("stop", function(data) {
                     // send any data up to now
-                    self.stop( );
+                    self.stop();
                 })
-                .listen("dispose", function(data){
-                    self.stop( ).dispose( );
+                .listen("dispose", function(data) {
+                    self.stop().dispose();
                     // end worker
-                    Sudoku.Asynchronous.close( );
+                    Sudoku.Asynchronous.close();
                 })
             ;
         }
@@ -3446,7 +3612,7 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
     solution: null,
     data: null,
 
-    dispose: function( ) {
+    dispose: function() {
         var self = this;
         self.solution = null;
         self.data = null;
@@ -3454,11 +3620,11 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
         return self;
     },
 
-    compileAsync: function( generate ) {
+    doAsync: function(type) {
         var self = this, dims = self.dimensions, start, end, completed;
-        if ( isWorker )
+        if (isWorker)
         {
-            completed = function( ) {
+            completed = function() {
                 self.status = Compiler.STATUS.FOUND;
                 self.send('complete', {
                     status: self.status,
@@ -3468,113 +3634,179 @@ Sudoku.SudokuCompiler = Sudoku.Class( Compiler, {
         }
         else
         {
-            completed = function( ) {
-                end = new Date( ).getTime( );
-                if ( self.solution )
+            completed = function() {
+                end = new Date().getTime();
+                if (self.solution || (0 === self.solution))
                 {
                     self.status = Compiler.STATUS.FOUND;
-                    self.trigger('complete', {
-                        status: self.status,
-                        duration: end - start
+                    setTimeout(function() {
+                        self.emit('complete', {
+                            status: self.status,
+                            duration: end - start
+                        });
                     }, 5);
                 }
                 else
                 {
                     self.status = Compiler.STATUS.NOT_FOUND;
-                    self.trigger( 'error', null, 5 );
+                    setTimeout(function() {self.emit('error');}, 5);
                 }
             };
 
-            start = new Date( ).getTime( );
+            start = new Date().getTime();
         }
 
-        self.stop( );
-        if ( true === generate )
+        self.stop();
+        if ("generate" === type)
         {
-            setTimeout(function( ) {
-                self.solution = sudoku_grid( self.data, true );
-                completed( );
-            }, 20 );
+            setTimeout(function() {
+                self.solution = sudoku_grid(self.data, 'unique');
+                completed();
+            }, 20);
+        }
+        else if ("generateEmpty" === type)
+        {
+            setTimeout(function() {
+                self.solution = sudoku_grid(self.data, 'empty');
+                completed();
+            }, 20);
+        }
+        else if ("solve" === type)
+        {
+            setTimeout(function() {
+                self.solution = sudoku_solve(self.data);
+                completed();
+            }, 20);
         }
         else
         {
             self.steps(
-                self.until( true, sudokuAsyncSinglePass( self.data, self.data.difficulty, self.data.symmetry ) ),
+                self.until(true, sudoku_async_singlepass(self.data, self.data.difficulty, self.data.symmetry)),
                 completed
-            ).interval( isWorker ? 15 : 40 ).run( Compiler.RUN_MODE.SEQUENCE );
+            ).interval(isWorker ? 15 : 40).run(Compiler.RUN_MODE.SEQUENCE);
         }
         return self;
     },
 
-    compileWorker: function( generate ) {
+    doWorker: function(type) {
         var self = this, start, end;
 
-        start = new Date( ).getTime( );
+        start = new Date().getTime();
 
-        self.fork( )
-            .listen('generateSudoku', function( data ) {
+        self.fork()
+            .listen("generate", function(data) {
                 self.status = Compiler.STATUS.FOUND;
                 self.solution = data.solution
-                self.trigger('complete', {
-                    status: self.status,
-                    duration: end - start
-                }, 5);
-                setTimeout(function( ) {
-                    self.unfork( );
-                }, 500);
-            })
-            .listen('complete', function( data ) {
-                end = new Date( ).getTime( );
-                self.status = data.status;
-                if ( data.solution )
-                {
-                    self.solution = data.solution;
-                    self.trigger('complete', {
+                setTimeout(function() {
+                    self.emit('complete', {
                         status: self.status,
                         duration: end - start
+                    });
+                }, 5);
+                setTimeout(function() {
+                    self.unfork();
+                }, 500);
+            })
+            .listen("generateEmpty", function(data) {
+                self.status = Compiler.STATUS.FOUND;
+                self.solution = data.solution
+                setTimeout(function() {
+                    self.emit('complete', {
+                        status: self.status,
+                        duration: end - start
+                    });
+                }, 5);
+                setTimeout(function() {
+                    self.unfork();
+                }, 500);
+            })
+            .listen("solve", function(data) {
+                self.status = Compiler.STATUS.FOUND;
+                self.solution = data.solution
+                setTimeout(function() {
+                    self.emit('complete', {
+                        status: self.status,
+                        duration: end - start
+                    });
+                }, 5);
+                setTimeout(function() {
+                    self.unfork();
+                }, 500);
+            })
+            .listen("complete", function(data) {
+                end = new Date().getTime();
+                self.status = data.status;
+                if (data.solution)
+                {
+                    self.solution = data.solution;
+                    setTimeout(function() {
+                        self.emit('complete', {
+                            status: self.status,
+                            duration: end - start
+                        });
                     }, 5);
                 }
                 else
                 {
-                    self.trigger('error', null, 5);
+                    setTimeout(function() {self.emit('error');}, 5);
                 }
-                setTimeout(function( ) {
-                    self.unfork( );
+                setTimeout(function() {
+                    self.unfork();
                 }, 500);
             })
         ;
-        if ( true === generate ) self.send('generateSudoku', { data: self.data });
-        else self.send('compile', { data: self.data });
+        if ("generate" === type) self.send("generate", {data: self.data});
+        else if ("generateEmpty" === type) self.send("generateEmpty", {data: self.data});
+        else if ("solve" === type) self.send("solve", {data: self.data});
+        else self.send("compile", {data: self.data});
         return self;
     },
 
-    setSolution: function( ) {
+    setSolution: function() {
         var self = this;
-        if ( self.grid && self.solution ) self.grid.setRawGrid( self.solution );
+        if (self.grid && self.solution) self.grid.setRawGrid(self.solution);
         return self;
     },
 
-    clearSolution: function( ) {
+    clearSolution: function() {
         return this;
     },
 
-    generateSudoku: function( asWorker ) {
+    generate: function(asWorker) {
         var self = this;
         self.solution = null;
-        self.data = self.grid.getRawGrid( );
-        if ( false !== asWorker ) self.compileWorker( true );
-        else self.compileAsync( true );
+        self.data = self.grid.getRawGrid();
+        if (false !== asWorker) self.doWorker("generate");
+        else self.doAsync("generate");
         return self;
     },
 
-    compile: function( asWorker, difficulty, symmetry ) {
+    generateEmpty: function(asWorker) {
         var self = this;
         self.solution = null;
-        self.data = self.grid.getRawGrid( );
+        self.data = self.grid.getRawGrid();
+        if (false !== asWorker) self.doWorker("generateEmpty");
+        else self.doAsync("generateEmpty");
+        return self;
+    },
+
+    solve: function(asWorker) {
+        var self = this;
+        self.solution = null;
+        self.data = self.grid.getRawGrid();
+        if (false !== asWorker) self.doWorker("solve");
+        else self.doAsync("solve");
+        return self;
+    },
+
+    compile: function(asWorker, difficulty, symmetry) {
+        var self = this;
+        self.solution = null;
+        self.data = self.grid.getRawGrid();
         self.data.difficulty = difficulty;
         self.data.symmetry = symmetry;
-        if ( false !== asWorker ) self.compileWorker( );
-        else self.compileAsync( );
+        if (false !== asWorker) self.doWorker("compile");
+        else self.doAsync("compile");
         return self;
     }
 });

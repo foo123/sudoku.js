@@ -1,9 +1,11 @@
 sudoku.js
 =========
 
-simple sudoku game, builder and solver,
+**Sudoku** game, builder and solver in pure JavaScript.
 
-a scaled-down version of CrossWord.js, professional Crossword Builder in JavaScript, by same author
+Scaled-down version of **CrossWord.js**, a professional Crossword/Puzzle WYSIWYG Builder, by same author
+
+**version 1.1.0 in progress**
 
 [ISC License](https://opensource.org/licenses/ISC)
 

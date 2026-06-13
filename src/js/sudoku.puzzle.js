@@ -4,7 +4,7 @@
 * Represents a (generic) crossword grid and the operations/user interactions performed on the grid
 *
 **/
-!function(Sudoku, undef){
+!function(Sudoku, undef) {
 "use strict";
 
 var stdMath = Math, floor = stdMath.floor, round = stdMath.round, ceil = stdMath.ceil,
@@ -19,103 +19,103 @@ var stdMath = Math, floor = stdMath.floor, round = stdMath.round, ceil = stdMath
     HORIZONTAL = 1, VERTICAL = 2,
     ERRORCLASS = "notvalid", HIGHLIGHTCLASS = "highlighted", FOCUSEDCLASS = 'cell-focused',
     HIDE_CLUES = "hide-clues", HIDE_SOLUTION = "hide-solution",
-    HAS = 'hasOwnProperty'
+    HAS = Object.prototype.hasOwnProperty
 ;
 
 // helpers
-function getRange( L, shuffled )
+function getRange(L, shuffled)
 {
-    var a = new Array( L ), i;
-    for (i=0; i<L; i++) a[ i ] = i;
-    if ( shuffled ) a = shuffle( a );
+    var a = new Array(L), i;
+    for (i=0; i<L; ++i) a[i] = i;
+    if (shuffled) a = shuffle(a);
     return a;
 }
 
-function cellInBounds( rows, columns )
+function cellInBounds(rows, columns)
 {
-    return function( ){var c = this; return !!( 0 <= c.row && c.row < rows && 0 <= c.column && c.column < columns );};
+    return function() {var c = this; return !!(0 <= c.row && c.row < rows && 0 <= c.column && c.column < columns);};
 }
 
-function isCell( ) { return CELL === this.cellType; }
+function isCell() {return CELL === this.cellType;}
 
-function isSeparatorCell( ) { return SEP === this.cellType; }
+function isSeparatorCell() {return SEP === this.cellType;}
 
-function highlightedCell( ) { return 0 < this.highlightType; }
+function highlightedCell() {return 0 < this.highlightType;}
 
-function isValidSolution( ) { return this.value === this.solution; }
+function isValidSolution() {return this.value === this.solution;}
 
-function revealCell( )
+function revealCell()
 {
     var i = this;
-    $(i).removeClass( ERRORCLASS );
+    $(i).removeClass(ERRORCLASS);
     i.value = i.solution || "";
     return i;
 }
 
-function clearCell( )
+function clearCell()
 {
     var c = this;
     c.firstChild.value = "";
     return c;
 }
 
-function clearErrors( )
+function clearErrors()
 {
     var i = this;
-    $(i).removeClass( ERRORCLASS );
-    if ( i.value !== i.solution ) i.value = "";
+    $(i).removeClass(ERRORCLASS);
+    if (i.value !== i.solution) i.value = "";
     return i;
 }
 
-function highlightErrors( )
+function highlightErrors()
 {
     var i = this, $i = $(i);
-    if ( i.value && i.value.length && i.solution )
+    if (i.value && i.value.length && i.solution)
     {
-        if ( i.solution === i.value )
-            $i.removeClass( ERRORCLASS );
-        else if ( !$i.hasClass( ERRORCLASS ) )
-            $i.addClass( ERRORCLASS );
+        if (i.solution === i.value)
+            $i.removeClass(ERRORCLASS);
+        else if (!$i.hasClass(ERRORCLASS))
+            $i.addClass(ERRORCLASS);
     }
     else
     {
-        $i.removeClass( ERRORCLASS );
+        $i.removeClass(ERRORCLASS);
     }
     return i;
 }
 
-function deHighlightErrors( )
+function deHighlightErrors()
 {
     var i = this;
-    $(i).removeClass( ERRORCLASS );
+    $(i).removeClass(ERRORCLASS);
     return i;
 }
 
-function highlightCell( )
+function highlightCell()
 {
     var c = this;
-    if ( c.highlightType <= 0 )
+    if (c.highlightType <= 0)
     {
         c.highlightType = 1;
-        $(c).addClass( HIGHLIGHTCLASS );
+        $(c).addClass(HIGHLIGHTCLASS);
     }
 }
 
-function deHighlightCell( )
+function deHighlightCell()
 {
     var c = this;
-    if ( c.highlightType > 0 )
+    if (c.highlightType > 0)
     {
         c.highlightType = 0;
-        $(c).removeClass( HIGHLIGHTCLASS );
+        $(c).removeClass(HIGHLIGHTCLASS);
     }
 }
 
-function toDefault( )
+function toDefault()
 {
     var c = this, $c = $(c);
     $c.removeClass('ui-selected default placeholder');
-    if ( IMAGE === c.cellType )
+    if (IMAGE === c.cellType)
     {
         c.cellType = CELL;
         $c.addClass('default');
@@ -123,88 +123,88 @@ function toDefault( )
     return c;
 }
 
-function moveCursor( $cell, code, nowrap, gc, rows, columns )
+function moveCursor($cell, code, nowrap, gc, rows, columns)
 {
     nowrap = !(nowrap || false);
-    var cell = $cell[ 0 ], $next, row = cell.row, column = cell.column;
+    var cell = $cell[0], $next, row = cell.row, column = cell.column;
 
-    if ( false === code )
+    if (false === code)
     {
         // get neighbor highlighted cell
-        $next = $cell.nextAll('.cell.default').filter( highlightedCell );
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        $next = $cell.nextAll('.cell.default').filter(highlightedCell);
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_UP === code )
+    else if (KEY_UP === code)
     {
         $next = $cell.prevAll('.cell.default.column-'+column);
-        while ( nowrap && !$next.length && column > 0 )
+        while (nowrap && !$next.length && column > 0)
         {
-            column--;
-            if ( column >= 0 )
+            --column;
+            if (column >= 0)
             {
                 $cell = gc.filter('.row-last.column-'+column);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.prevAll('.cell.default.column-'+column);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_DOWN === code )
+    else if (KEY_DOWN === code)
     {
         $next = $cell.nextAll('.cell.default.column-'+column);
-        while ( nowrap && !$next.length && column < columns )
+        while (nowrap && !$next.length && column < columns)
         {
-            column++;
-            if ( column < columns )
+            ++column;
+            if (column < columns)
             {
                 $cell = gc.filter('.row-first.column-'+column);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.nextAll('.cell.default.column-'+column);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_LEFT === code )
+    else if (KEY_LEFT === code)
     {
         $next = $cell.prevAll('.cell.default.row-'+row);
-        while ( nowrap && !$next.length && row > 0 )
+        while (nowrap && !$next.length && row > 0)
         {
-            row--;
-            if ( row >= 0 )
+            --row;
+            if (row >= 0)
             {
                 $cell = gc.filter('.column-last.row-'+row);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.prevAll('.cell.default.row-'+row);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
 
-    else if ( KEY_RIGHT === code )
+    else if (KEY_RIGHT === code)
     {
         $next = $cell.nextAll('.cell.default.row-'+row);
-        while ( nowrap && !$next.length && row < rows )
+        while (nowrap && !$next.length && row < rows)
         {
-            row++;
-            if ( row < rows )
+            ++row;
+            if (row < rows)
             {
                 $cell = gc.filter('.column-first.row-'+row);
-                if ( CELL === $cell[0].cellType )
+                if (CELL === $cell[0].cellType)
                     $next = $cell;
                 else
                     $next = $cell.nextAll('.cell.default.row-'+row);
             }
         }
-        if ( $next.length ) $next.eq(0).children('input').focus();
+        if ($next.length) $next.eq(0).children('input').focus();
     }
     return $next;
 }
@@ -260,20 +260,20 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         moveCursor: moveCursor
     },
 
-    constructor: function( ) {
+    constructor: function() {
         var self = this;
         self.type = 'GRID';
-        self.id = UUID( );
+        self.id = UUID();
         self.selector = self.getSelector();
-        self.dimensions = self.getDefaultDimensions( );
-        self.styles = self.getDefaultStyles( );
-        self.cssStyles = self.getDefaultCssStyles( self.selector, self.styles, self.dimensions );
-        self.style = createStyleSheet( 'all', self.cssStyles );
+        self.dimensions = self.getDefaultDimensions();
+        self.styles = self.getDefaultStyles();
+        self.cssStyles = self.getDefaultCssStyles(self.selector, self.styles, self.dimensions);
+        self.style = createStyleSheet('all', self.cssStyles);
         self.grid = null;
         self.cells = null;
         self.cellInputs = null;
         self.userMode = false;
-        self.initPubSub( );
+        self.initPubSub();
     },
 
     type: null,
@@ -294,7 +294,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     userMode: false,
     highlightMode: false,
 
-    dispose: function( ) {
+    dispose: function() {
         var self = this;
         self.type = null;
         self.id = null;
@@ -309,33 +309,33 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         self.cells = null;
         self.styles = null;
         self.cssStyles = null;
-        disposeStyleSheet( self.style );
+        disposeStyleSheet(self.style);
         self.style = null;
-        if ( self.grid )
+        if (self.grid)
         {
             // http://stackoverflow.com/questions/768621/how-to-dispose-of-dom-elements-in-javascript-to-avoid-memory-leaks
-            self.setSelectable( false, true ).setResizable( false, true );
-            self.grid.off( );
-            self.grid.children( ).remove( );
-            self.grid.remove( );
+            self.setSelectable(false, true).setResizable(false, true);
+            self.grid.off();
+            self.grid.children().remove();
+            self.grid.remove();
         }
         self.grid = null;
-        self.disposePubSub( );
+        self.disposePubSub();
         return self;
     },
 
-    getCell: function( row, column ) {
+    getCell: function(row, column) {
         var index = arguments.length < 2 ? (row||0) : ((row || 0)*this.dimensions.columns + (column || 0));
-        return this.cells.eq( index );
+        return this.cells.eq(index);
     },
 
-    getRow: function( row, col1, col2 ) {
+    getRow: function(row, col1, col2) {
         var cols = this.dimensions.columns, r = (row||0)*cols;
         col1 = col1 || 0; col2 = col2 ? (col2+1) : cols;
-        return this.cells.slice( r+col1, r+col2 );
+        return this.cells.slice(r+col1, r+col2);
     },
 
-    getColumn: function( column, row1, row2 ) {
+    getColumn: function(column, row1, row2) {
         var self = this, cells = self.cells,
             rows = self.dimensions.rows, cols = self.dimensions.columns,
             r, rc, rc0, col = $([])
@@ -344,43 +344,43 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         row1 = row1 || 0;
         row2 = row2 || (rows-1);
         rc0 = row1*cols;
-        for (r=row1,rc=rc0; r<=row2; r++,rc+=cols)
-            col = col.add( cells.eq( rc + column ) );
+        for (r=row1,rc=rc0; r<=row2; ++r,rc+=cols)
+            col = col.add(cells.eq(rc + column));
         return col;
     },
 
-    getCells: function( row1, column1, row2, column2 ) {
+    getCells: function(row1, column1, row2, column2) {
         var self = this, cells, r, c, rc, rc0, gc = self.cells,
             columns = self.dimensions.columns, rows = self.dimensions.rows
         ;
-        if ( !arguments.length )
+        if (!arguments.length)
         {
-            return gc.slice( 0 );
+            return gc.slice(0);
         }
-        else if ( arguments.length < 2 )
+        else if (arguments.length < 2)
         {
             column1 = 0;
             row2 = rows-1;
             column2 = columns-1;
         }
-        else if ( arguments.length < 3 )
+        else if (arguments.length < 3)
         {
             row2 = rows-1;
             column2 = columns-1;
         }
-        else if ( arguments.length < 4 )
+        else if (arguments.length < 4)
         {
             column2 = columns-1;
         }
 
-        if ( row1 > row2 )
+        if (row1 > row2)
         {
             // swap
             rc = row1;
             row1 = row2;
             row2 = rc;
         }
-        if ( column1 > column2 )
+        if (column1 > column2)
         {
             // swap
             rc = column1;
@@ -397,23 +397,23 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
 
         cells = $([]);
         rc0 = row1*columns;
-        for (r=row1,rc=rc0; r<=row2; r++,rc+=columns)
+        for (r=row1,rc=rc0; r<=row2; ++r,rc+=columns)
         {
-            cells = cells.add( gc.slice( rc + column1, rc + column2 ) );
+            cells = cells.add(gc.slice(rc + column1, rc + column2));
         }
         return cells;
     },
 
-    getRange: function( cells ) {
+    getRange: function(cells) {
         var range, rm = Infinity, rM = -Infinity, cm = Infinity, cM = -Infinity;
-        if ( cells && cells.length )
+        if (cells && cells.length)
         {
-            cells.each(function( ) {
+            cells.each(function() {
                 var c = this, cr = c.row, cc = c.column;
-                if ( cr <= rm ) rm = cr;
-                if ( cr >= rM ) rM = cr;
-                if ( cc <= cm ) cm = cc;
-                if ( cc >= cM ) cM = cc;
+                if (cr <= rm) rm = cr;
+                if (cr >= rM) rM = cr;
+                if (cc <= cm) cm = cc;
+                if (cc >= cM) cM = cc;
             });
             range = [
                 {row: rm, column: cm},
@@ -430,46 +430,46 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return range;
     },
 
-    getCellInputs: function( ) {
+    getCellInputs: function() {
         var self = this;
-        if ( !self.cellInputs ) self.cellInputs = self.cells.filter( isCell ).children( 'input' );
+        if (!self.cellInputs) self.cellInputs = self.cells.filter(isCell).children('input');
         return self.cellInputs;
     },
 
-    setSelectable: function( enable, and_destroy ) {
+    setSelectable: function(enable, and_destroy) {
         var self = this, grid = self.grid, isAlreadyCreated, isAlreadySelectable;
 
-        if ( $.fn.selectable )
+        if ($.fn.selectable)
         {
-            if ( grid )
+            if (grid)
             {
                 isAlreadyCreated = /*grid.hasClass('ui-selectable') &&*/ !!grid.data('ui-selectable');
-                isAlreadySelectable = isAlreadyCreated ? !grid.selectable( 'option', 'disabled' ) : false;
-                if ( enable )
+                isAlreadySelectable = isAlreadyCreated ? !grid.selectable('option', 'disabled') : false;
+                if (enable)
                 {
-                    if ( !isAlreadyCreated )
+                    if (!isAlreadyCreated)
                     {
                         grid.selectable({
                             filter: '.cell',
                             autoRefresh: false
                         });
                     }
-                    else if ( isAlreadyCreated && !isAlreadySelectable )
+                    else if (isAlreadyCreated && !isAlreadySelectable)
                     {
-                        grid.selectable( 'option', 'disabled', false );
+                        grid.selectable('option', 'disabled', false);
                     }
                 }
                 else
                 {
-                    if ( and_destroy && isAlreadyCreated )
+                    if (and_destroy && isAlreadyCreated)
                     {
-                        grid.children( '.ui-selected' ).removeClass( 'ui-selected' );
-                        grid.selectable( 'destroy' );
+                        grid.children('.ui-selected').removeClass('ui-selected');
+                        grid.selectable('destroy');
                     }
-                    else if ( isAlreadySelectable && !and_destroy )
+                    else if (isAlreadySelectable && !and_destroy)
                     {
-                        grid.children( '.ui-selected' ).removeClass( 'ui-selected' );
-                        grid.selectable( 'option', 'disabled', true )
+                        grid.children('.ui-selected').removeClass('ui-selected');
+                        grid.selectable('option', 'disabled', true)
                                     .removeClass('ui-state-disabled')
                                     .attr('aria-disabled', "false")
                                 ;
@@ -480,28 +480,28 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return self;
     },
 
-    setResizable: function( enable, and_destroy ) {
+    setResizable: function(enable, and_destroy) {
         var self = this, grid = self.grid,
             isAlreadyResizable, isAlreadyCreated,
             disableSelectable, enableSelectable
         ;
 
-        if ( $.fn.resizable )
+        if ($.fn.resizable)
         {
-            if ( grid )
+            if (grid)
             {
                 isAlreadyCreated = /*grid.hasClass('ui-resizable') &&*/ !!grid.data('ui-resizable');
                 isAlreadyResizable = isAlreadyCreated ? !grid.resizable('option', 'disabled') : false;
 
-                if ( enable )
+                if (enable)
                 {
-                    if ( !isAlreadyCreated )
+                    if (!isAlreadyCreated)
                     {
-                        disableSelectable = function( ) {
-                            self.setSelectable( false );
+                        disableSelectable = function() {
+                            self.setSelectable(false);
                         };
-                        enableSelectable = function( ) {
-                            self.setSelectable( true );
+                        enableSelectable = function() {
+                            self.setSelectable(true);
                         };
 
                         grid/*.on('resizestart', startResize)
@@ -520,38 +520,38 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
                                 distance: 2,
                                 helper: "resizable-helper",
                                 grid: false,
-                                start: function( event, ui ) {
-                                    disableSelectable( );
+                                start: function(event, ui) {
+                                    disableSelectable();
                                     grid.addClass('resizing');
                                 },
-                                stop: function( event, ui ) {
+                                stop: function(event, ui) {
                                     var dims = self.dimensions,
                                         cellSize = dims.cellSize,
-                                        newCellSize = round( ui.size.width / dims.columns )
+                                        newCellSize = round(ui.size.width / dims.columns)
                                     ;
                                     //console.log([cellSize, newCellSize]);
                                     dims.cellSize = newCellSize;
                                     grid.removeClass('resizing');
-                                    enableSelectable( );
-                                    self.updateDimensions( );
+                                    enableSelectable();
+                                    self.updateDimensions();
                                 }
                             })
                         ;
                     }
-                    else if ( isAlreadyCreated && !isAlreadyResizable )
+                    else if (isAlreadyCreated && !isAlreadyResizable)
                     {
                         grid.resizable('option', 'disabled', false);
                     }
                 }
                 else
                 {
-                    if ( and_destroy && isAlreadyCreated )
+                    if (and_destroy && isAlreadyCreated)
                     {
-                        grid.resizable( 'destroy' )
+                        grid.resizable('destroy')
                         .off('mousedown.resizablehandle mouseup.resizablehandle resizestart resizestop')
                         ;
                     }
-                    else if ( isAlreadyResizable && !and_destroy )
+                    else if (isAlreadyResizable && !and_destroy)
                     {
                         grid.resizable('option', 'disabled', true)
                                     .removeClass('ui-state-disabled')
@@ -564,41 +564,41 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return self;
     },
 
-    setHighlightMode: function( bool ) {
+    setHighlightMode: function(bool) {
         this.highlightMode = !!bool;
         return this;
     },
 
-    handleInput: function( evt, input, prevval ) {
+    handleInput: function(evt, input, prevval) {
         var self = this, AB = self.alphabet,
-            val = input.value.toUpperCase( ), $input = $(input),
+            val = input.value.toUpperCase(), $input = $(input),
             rows = self.dimensions.rows, ret, cell,
             columns = self.dimensions.columns,
             moveDir = self.toggleHorizontalHighlight ? KEY_RIGHT : KEY_DOWN
         ;
-        if ( val.length && 0 > AB.indexOf( val ) ) val = "";
-        if ( self.toggleErrorsHighlight )
+        if (val.length && 0 > AB.indexOf(val)) val = "";
+        if (self.toggleErrorsHighlight)
         {
-            if ( input.solution && val.length && val !== input.solution )
+            if (input.solution && val.length && val !== input.solution)
             {
-                if ( !$input.hasClass( ERRORCLASS ) )
-                    $input.addClass( ERRORCLASS );
+                if (!$input.hasClass(ERRORCLASS))
+                    $input.addClass(ERRORCLASS);
             }
             else
             {
-                $input.removeClass( ERRORCLASS );
+                $input.removeClass(ERRORCLASS);
             }
         }
         input.value = val;
 
         // move cursor to next cell
-        if ( val.length && -1 < AB.indexOf( val ) ) ret = moveCursor( $input.parent('.cell'), false, true, self.cells, rows, columns );
+        if (val.length && -1 < AB.indexOf(val) ) ret = moveCursor($input.parent('.cell'), false, true, self.cells, rows, columns);
         else ret = $input.parent('.cell');
-        if ( val !== prevval ) self.trigger( 'input', {input: input} );
+        if (val !== prevval) self.emit('input', {input: input});
         return ret;
     },
 
-    handleKeyNav: function( evt, $cell ) {
+    handleKeyNav: function(evt, $cell) {
         var self = this, dims = self.dimensions;
         return moveCursor(
             $cell,
@@ -610,92 +610,92 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         );
     },
 
-    showClues: function( bool ) {
+    showClues: function(bool) {
         var self = this, g = self.grid;
         bool = !arguments.length ? true : !!bool;
-        if ( bool && g.hasClass( HIDE_CLUES ) ) g.removeClass( HIDE_CLUES );
-        else if ( !bool && !g.hasClass( HIDE_CLUES ) ) g.addClass( HIDE_CLUES );
+        if (bool && g.hasClass(HIDE_CLUES)) g.removeClass(HIDE_CLUES);
+        else if (!bool && !g.hasClass(HIDE_CLUES)) g.addClass(HIDE_CLUES);
         return self;
     },
 
-    showSolution: function( bool ) {
+    showSolution: function(bool) {
         var self = this, g = self.grid;
         bool = !arguments.length ? true : !!bool;
-        if ( bool && g.hasClass( HIDE_SOLUTION ) ) g.removeClass( HIDE_SOLUTION );
-        else if ( !bool && !g.hasClass( HIDE_SOLUTION ) ) g.addClass( HIDE_SOLUTION );
+        if (bool && g.hasClass(HIDE_SOLUTION)) g.removeClass(HIDE_SOLUTION);
+        else if (!bool && !g.hasClass(HIDE_SOLUTION)) g.addClass(HIDE_SOLUTION);
         return self;
     },
 
-    enableUserMode: function( enable ) {
+    enableUserMode: function(enable) {
         var self = this, g = self.grid;
-        if ( enable && !self.userMode )
+        if (enable && !self.userMode)
         {
-            g.addClass( 'user-mode' );
-            self.setResizable( false );
+            g.addClass('user-mode');
+            self.setResizable(false);
             self.userMode = true;
-            self.trigger( 'userMode', {userMode: true} );
+            self.emit('userMode', {userMode: true});
         }
-        else if ( !enable && self.userMode )
+        else if (!enable && self.userMode)
         {
-            g.removeClass( 'user-mode' );
-            self.setResizable( true );
+            g.removeClass('user-mode');
+            self.setResizable(true);
             self.userMode = false;
-            self.trigger( 'userMode', {userMode: false} );
+            self.emit('userMode', {userMode: false});
         }
         return self;
     },
 
-    scale: function( s ) {
+    scale: function(s) {
         var self = this, grid = self.grid[0],
-            transformProperty = getTransformProperty( grid );
-        if ( arguments.length )
+            transformProperty = getTransformProperty(grid);
+        if (arguments.length)
         {
             s = parseFloat(s, 10);
-            grid.style[ transformProperty+'Origin' ] = 'center center';
-            grid.style[ transformProperty ] = 'scale('+s+','+s+')';
+            grid.style[transformProperty+'Origin'] = 'center center';
+            grid.style[transformProperty] = 'scale('+s+','+s+')';
         }
         else
         {
-            grid.style[ transformProperty+'Origin' ] = 'center center';
-            grid.style[ transformProperty ] = 'none';
+            grid.style[transformProperty+'Origin'] = 'center center';
+            grid.style[transformProperty] = 'none';
         }
         return self;
     },
 
-    build: function( dims ) {
+    build: function(dims) {
         var self = this;
         self
-            .buildGrid( dims )
-            .onBuildComplete( )
-            .trigger( 'build', null, 50 )
-            .trigger( 'percentage', {percentage: self.getPercentage( )}, 100 )
+            .buildGrid(dims)
+            .onBuildComplete()
+            .emit('build', null, 50)
+            .emit('percentage', {percentage: self.getPercentage()}, 100)
         ;
         return self;
     },
 
-    importTpl: function( jsonTpl ) {
+    importTpl: function(jsonTpl) {
         var self = this;
-        if ( jsonTpl && jsonTpl[HAS]("dimensions") )
+        if (jsonTpl && HAS.call(jsonTpl, "dimensions"))
         {
             self
-                //.setDimensions( jsonTpl.dimensions )
-                .setStyles( jsonTpl.styles )
-                .buildGrid( jsonTpl.dimensions )
+                //.setDimensions(jsonTpl.dimensions)
+                .setStyles(jsonTpl.styles)
+                .buildGrid(jsonTpl.dimensions)
             ;
 
-            if ( jsonTpl[HAS]('alphabet') && jsonTpl.alphabet && jsonTpl.alphabet.length )
-                self.setAlphabet( jsonTpl.alphabet );
+            if (HAS.call(jsonTpl, 'alphabet') && jsonTpl.alphabet && jsonTpl.alphabet.length)
+                self.setAlphabet(jsonTpl.alphabet);
 
             self
-                .onBuildComplete( )
-                .trigger( 'build', null, 50 )
-                .trigger( 'import', null, 100 )
+                .onBuildComplete()
+                .emit('build', null, 50)
+                .emit('import', null, 100)
             ;
         }
         return self;
     },
 
-    exportTpl: function( ) {
+    exportTpl: function() {
         var self = this, g = self.grid, gc = self.cells,
 
             jsonTpl = {
@@ -712,68 +712,68 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         return jsonTpl;
     },
 
-    revealSolution: function( ) {
-        this.getCellInputs( ).each( revealCell );
+    revealSolution: function() {
+        this.getCellInputs().each(revealCell);
         return this;
     },
 
-    revealCells: function( cells ) {
-        if ( cells && cells.length ) cells.children( 'input' ).each( revealCell );
+    revealCells: function(cells) {
+        if (cells && cells.length) cells.children('input').each(revealCell);
         return this;
     },
 
-    revealCell: function( cell ) {
+    revealCell: function(cell) {
         cell = cell || this.currentInputCell || null;
-        if ( cell && cell.length && CELL === cell[ 0 ].cellType )
-            revealCell.call( cell[ 0 ].firstChild );
+        if (cell && cell.length && CELL === cell[0].cellType)
+            revealCell.call(cell[0].firstChild);
         return this;
     },
 
-    checkIsSolved: function( ) {
-        var inputs = this.getCellInputs( );
-        return inputs.filter( isValidSolution ).length === inputs.length;
+    checkIsSolved: function() {
+        var inputs = this.getCellInputs();
+        return inputs.filter(isValidSolution).length === inputs.length;
     },
 
-    getSolvedPercent: function( ) {
-        var inputs = this.getCellInputs( );
-        return inputs.filter( isValidSolution ).length / (inputs.length || 1);
+    getSolvedPercent: function() {
+        var inputs = this.getCellInputs();
+        return inputs.filter(isValidSolution).length / (inputs.length || 1);
     },
 
-    highlightErrors: function( toggle ) {
+    highlightErrors: function(toggle) {
         var self = this;
         self.toggleErrorsHighlight = !!toggle;
-        self.getCellInputs( ).each( self.toggleErrorsHighlight ? highlightErrors : deHighlightErrors );
+        self.getCellInputs().each(self.toggleErrorsHighlight ? highlightErrors : deHighlightErrors);
         return self;
     },
 
-    clearErrors: function( ) {
-        this.getCellInputs( ).each( clearErrors );
+    clearErrors: function() {
+        this.getCellInputs().each(clearErrors);
         return this;
     },
 
-    getCssStyles: function( externalCss ) {
+    getCssStyles: function(externalCss) {
         externalCss = externalCss
                 ? '<link rel="stylesheet" media="all" href="' + externalCss + '" />'
                 : ''
             ;
-        return  externalCss + '<style type="text/css" media="all">'+getCSS( this.style )+'</style>';
+        return  externalCss + '<style type="text/css" media="all">'+getCSS(this.style)+'</style>';
     },
 
-    setStyles: function( styles ) {
-        var self = this, defaultStyles = self.getDefaultStyles( );
+    setStyles: function(styles) {
+        var self = this, defaultStyles = self.getDefaultStyles();
         self.styles = extend({}, self.styles || defaultStyles, styles);
-        if ( !self.styles[HAS]("symbolColor") ) self.styles.symbolColor = defaultStyles.symbolColor;
-        if ( !self.styles[HAS]("clueColor") ) self.styles.clueColor = defaultStyles.clueColor;
+        if (!HAS.call(self.styles, "symbolColor")) self.styles.symbolColor = defaultStyles.symbolColor;
+        if (!HAS.call(self.styles, "clueColor")) self.styles.clueColor = defaultStyles.clueColor;
         return self;
     },
 
-    setDimensions: function( dims ) {
+    setDimensions: function(dims) {
         var self = this;
-        self.dimensions = extend({}, self.dimensions || self.getDefaultDimensions( ), dims);
+        self.dimensions = extend({}, self.dimensions || self.getDefaultDimensions(), dims);
         return self;
     },
 
-    updateStyles: function( andTrigger ) {
+    updateStyles: function(andTrigger) {
         var self = this, cssStyles = self.cssStyles, styles = self.styles;
         cssStyles.grid.css.style.borderColor = styles.outerBorderColor;
         cssStyles.grid.css.style.borderWidth = styles.outerBorderThickness + 'px';
@@ -782,25 +782,25 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         cssStyles.cell.css.style.borderStyle = styles.borderStyle;
         cssStyles.cell.css.style.color = styles.symbolColor;
         cssStyles.highlighted.css.style.backgroundColor = styles.highlightColor;
-        if ( false !== andTrigger ) self.trigger( 'update-styles' );
+        if (false !== andTrigger) self.emit('update-styles');
         return self;
     },
 
-    updateDimensions: function( andTrigger ) {
+    updateDimensions: function(andTrigger) {
         var self = this, dims = self.dimensions,
             styles = self.styles, cssStyles = self.cssStyles,
-            d = dims.cellSize, di = round( 0.6*d ),
+            d = dims.cellSize, di = round(0.6*d),
             rows = dims.rows, columns = dims.columns,
             totalCells = rows*columns, r, c, prevRows, prevColumns,
             className, grid = self.grid, gridEl = grid[0], cells = self.cells,
-            cellsInBounds = cellInBounds( rows, columns ),
+            cellsInBounds = cellInBounds(rows, columns),
             $last, cell, currentRows
         ;
 
         // update grid classes
         gridEl.className = gridEl.className
-            .replace(/\bnumRows-(\d+)\b/, function(m, m1){ prevRows = parseInt(m1, 10); return 'numRows-'+rows; })
-            .replace(/\bnumColumns-(\d+)\b/, function(m, m1){ prevColumns = parseInt(m1, 10); return 'numColumns-'+columns; })
+            .replace(/\bnumRows-(\d+)\b/, function(m, m1) {prevRows = parseInt(m1, 10); return 'numRows-'+rows;})
+            .replace(/\bnumColumns-(\d+)\b/, function(m, m1) {prevColumns = parseInt(m1, 10); return 'numColumns-'+columns;})
             .replace(/\bsizeCell-\d+\b/, 'sizeCell-'+d)
         ;
 
@@ -810,83 +810,81 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
         gridEl.style.left = '';
         gridEl.style.top = '';
         // update grid dimensions
-        cssStyles.grid.css.style.width = (d*columns) + 'px';
-        cssStyles.grid.css.style.height = (d*rows) + 'px';
+        cssStyles.grid.css.style.width = String(d*columns) + 'px';
+        cssStyles.grid.css.style.height = String(d*rows) + 'px';
 
-        cssStyles.cell.css.style.width = d+'px';
-        cssStyles.cell.css.style.height = d+'px';
-        cssStyles.cell.css.style.fontSize = di+'px';
+        cssStyles.cell.css.style.width = String(d)+'px';
+        cssStyles.cell.css.style.height = String(d)+'px';
+        cssStyles.cell.css.style.fontSize = String(di)+'px';
 
         // update grid cells
-        cells.each(function( ) {
+        cells.each(function() {
             var cell = this, $cell = $(cell),
                 col = cell.column, row = cell.row
             ;
 
-            if ( row >= rows || col >= columns )
+            if (row >= rows || col >= columns)
             {
-                $cell.remove( );
+                $cell.remove();
             }
             else
             {
                 $cell.removeClass('row-first row-last column-first column-last');
-                if ( 0 === row ) $cell.addClass('row-first');
-                if ( rows-1 === row ) $cell.addClass('row-last');
-                if ( 0 === col ) $cell.addClass('column-first');
-                if ( columns-1 === col ) $cell.addClass('column-last');
+                if (0 === row) $cell.addClass('row-first');
+                if (rows-1 === row) $cell.addClass('row-last');
+                if (0 === col) $cell.addClass('column-first');
+                if (columns-1 === col) $cell.addClass('column-last');
 
-                cell.style.top = (row*d)+'px';
-                cell.style.left = (col*d)+'px';
+                cell.style.top = String(row*d)+'px';
+                cell.style.left = String(col*d)+'px';
             }
         });
 
         // add any additional rows/columns
-        if ( columns > prevColumns )
+        if (columns > prevColumns)
         {
-            currentRows = min( rows, prevRows );
-            for(r=0; r<currentRows; r++)
+            currentRows = min(rows, prevRows);
+            for (r=0; r<currentRows; ++r)
             {
                 $last = grid.children('.cell.row-'+r).eq(-1);
 
-                for(c=prevColumns; c<columns; c++)
+                for (c=prevColumns; c<columns; ++c)
                 {
-                   cell = self.buildCell( r, c, d,
-                        'cell default row-' + r + ' column-' + c + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')) + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))
-                    );
-                    $last = $(cell).insertAfter( $last );
+                   cell = self.buildCell(r, c, d,
+                        'cell default row-' + r + ' column-' + c + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')) + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : '')));
+                    $last = $(cell).insertAfter($last);
                 }
             }
         }
-        if ( rows > prevRows )
+        if (rows > prevRows)
         {
-            for(r=prevRows; r<rows; r++)
+            for (r=prevRows; r<rows; ++r)
             {
-                for(c=0; c<columns; c++)
+                for (c=0; c<columns; ++c)
                 {
-                   cell = self.buildCell( r, c, d,
-                        'cell default row-' + r + ' column-' + c + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')) + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))
-                    );
-                    grid.append( cell );
+                   cell = self.buildCell(r, c, d,
+                        'cell default row-' + r + ' column-' + c + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')) + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : '')));
+                    grid.append(cell);
                 }
             }
         }
-        self.cells = grid.children( '.cell' );
+        self.cells = grid.children('.cell');
 
         // update grid selectable
-        if ( grid.hasClass('ui-selectable') )
+        if (grid.hasClass('ui-selectable'))
         {
-            grid.selectable( 'refresh' );
+            grid.selectable('refresh');
         }
-        if ( false !== andTrigger )
+        if (false !== andTrigger)
         {
-            self.trigger( 'update-dimensions' );
-            self.trigger( 'percentage', {percentage: self.getPercentage( )}, 100 );
+            self.emit('update-dimensions');
+            self.emit('percentage', {percentage: self.getPercentage()}, 100);
         }
         return self;
     },
 
-    setAlphabet: function( alphabet ) {
-        if ( alphabet && alphabet.length )
+    setAlphabet: function(alphabet) {
+        if (alphabet && alphabet.length)
         {
             this.alphabet = alphabet.join ? alphabet.join('') : alphabet.slice();
         }
@@ -894,149 +892,149 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getHighlighted: function( ) {
-        return this.cells.filter( highlightedCell );
+    getHighlighted: function() {
+        return this.cells.filter(highlightedCell);
     },
 
     // @override
-    clearHighlighted: function( ) {
-        this.cells.filter( highlightedCell ).each( clearCell );
+    clearHighlighted: function() {
+        this.cells.filter(highlightedCell).each(clearCell);
         return this;
     },
 
-    clearCells: function( useCached ) {
+    clearCells: function(useCached) {
         var self = this;
-        if ( true === useCached ) self.getCellInputs( ).val( "" );
-        else self.cells.children( 'input' ).val( "" );
+        if (true === useCached) self.getCellInputs().val("");
+        else self.cells.children('input').val("");
         return self;
     },
 
     // @override
-    decorateCell: function( ) {
+    decorateCell: function() {
         return cell;
     },
 
     // @override
-    highlightClue: function( ) {
+    highlightClue: function() {
         return this;
     },
 
     // @override
-    addClue: function( ) {
+    addClue: function() {
         return this;
     },
 
     // @override
-    addClues: function( ) {
+    addClues: function() {
         return this;
     },
 
     // @override
-    clearClues: function( ) {
+    clearClues: function() {
         return this;
     },
 
-    clearGrid: function( useCached ) {
+    clearGrid: function(useCached) {
         this
-            .clearCells( useCached )
-            .clearClues( )
+            .clearCells(useCached)
+            .clearClues()
         ;
         return this;
     },
 
-    buildGrid: function( dims ) {
+    buildGrid: function(dims) {
         var self = this, r, c, grid, row, cell, styles, cssStyles, rows, columns, cellSize;
 
         dims = dims || {};
 
-        if ( !self.dimensions ) self.dimensions = self.getDefaultDimensions( );
-        if ( !self.styles ) self.styles = self.getDefaultStyles( );
+        if (!self.dimensions) self.dimensions = self.getDefaultDimensions();
+        if (!self.styles) self.styles = self.getDefaultStyles();
         self.userMode = false;
 
         self.alphabet = self.alphabet || Sudoku.ALPHABET;
-        if ( dims.rows ) self.dimensions.rows = dims.rows;
-        if ( dims.columns ) self.dimensions.columns = dims.columns;
-        if ( dims.cellSize ) self.dimensions.cellSize = dims.cellSize;
+        if (dims.rows) self.dimensions.rows = dims.rows;
+        if (dims.columns) self.dimensions.columns = dims.columns;
+        if (dims.cellSize) self.dimensions.cellSize = dims.cellSize;
         rows = self.dimensions.rows;
         columns = self.dimensions.columns;
         cellSize = self.dimensions.cellSize;
         styles = self.styles;
         cssStyles = self.cssStyles;
 
-        cssStyles.grid.css.style.width = (cellSize*columns) + 'px';
-        cssStyles.grid.css.style.height = (cellSize*rows) + 'px';
+        cssStyles.grid.css.style.width = String(cellSize*columns) + 'px';
+        cssStyles.grid.css.style.height = String(cellSize*rows) + 'px';
         cssStyles.grid.css.style.borderColor = styles.outerBorderColor;
-        cssStyles.grid.css.style.borderWidth = styles.outerBorderThickness + 'px';
+        cssStyles.grid.css.style.borderWidth = String(styles.outerBorderThickness) + 'px';
         cssStyles.cell.css.style.backgroundColor = styles.cellColor;
         cssStyles.cell.css.style.borderColor = styles.borderColor;
         cssStyles.cell.css.style.borderStyle = styles.borderStyle;
-        cssStyles.cell.css.style.width = cellSize+'px';
-        cssStyles.cell.css.style.height = cellSize+'px';
-        cssStyles.cell.css.style.fontSize = round( 0.6*cellSize )+'px';
+        cssStyles.cell.css.style.width = String(cellSize)+'px';
+        cssStyles.cell.css.style.height = String(cellSize)+'px';
+        cssStyles.cell.css.style.fontSize = String(round(0.6*cellSize))+'px';
         cssStyles.cell.css.style.color = styles.symbolColor;
         cssStyles.highlighted.css.style.backgroundColor = styles.highlightColor;
 
-        grid = Element( 'div' + '#' + self.id + '.' + self.getGridClasses( ).join( '.' ) );
+        grid = Element('div' + '#' + self.id + '.' + self.getGridClasses().join('.'));
         grid.setAttribute('id', self.id);
 
-        for (r=0; r<rows; r++)
+        for (r=0; r<rows; ++r)
         {
-            for (c=0; c<columns; c++)
+            for (c=0; c<columns; ++c)
             {
-                cell = self.buildCell( r, c, cellSize, [
+                cell = self.buildCell(r, c, cellSize, [
                     'cell default',
-                    'row-' + r + (0==r ? ' row-first' : (rows-1==r ? ' row-last' : '')),
-                    'column-' + c  + (0==c ? ' column-first' : (columns-1==c ? ' column-last' : ''))
+                    'row-' + r + (0===r ? ' row-first' : (rows-1===r ? ' row-last' : '')),
+                    'column-' + c  + (0===c ? ' column-first' : (columns-1===c ? ' column-last' : ''))
                 ].join(' '));
-                grid.appendChild( cell );
+                grid.appendChild(cell);
             }
         }
 
-        self.grid = $( grid );
-        self.cells = self.grid.children( '.cell' );
+        self.grid = $(grid);
+        self.cells = self.grid.children('.cell');
         return self;
     },
 
-    buildCell: function( row, col, size, className ) {
-        var cell = Element( 'div' ), input = Element( 'input' );
+    buildCell: function(row, col, size, className) {
+        var cell = Element('div'), input = Element('input');
 
         cell.cellType = CELL;
         cell.highlightType = 0;
         cell.row = row;
         cell.column = col;
-        cell.style.top = (row*size)+'px';
-        cell.style.left = (col*size)+'px';
+        cell.style.top = String(row*size)+'px';
+        cell.style.left = String(col*size)+'px';
 
         input.solution = null;
         input.highlightType = 0;
-        input.setAttribute( "type", "text" );
-        input.setAttribute( "value", "" );
-        input.setAttribute( "maxlength", "1" );
+        input.setAttribute("type", "text");
+        input.setAttribute("value", "");
+        input.setAttribute("maxlength", "1");
 
-        cell.appendChild( input );
+        cell.appendChild(input);
 
-        if ( className ) cell.className = ''+className;
+        if (className) cell.className = ''+className;
         return cell;
     },
 
     // @override
-    onBuildComplete: function( ) {
+    onBuildComplete: function() {
         return this;
     },
 
     // @override
-    getSelector: function( ) {
+    getSelector: function() {
         return '#'+this.id+'.crossword';
     },
 
     // @override
-    getGridClasses: function( ) {
+    getGridClasses: function() {
         var dims = this.dimensions;
-        return [ 'crossword', 'numRows-'+dims.rows, 'numColumns-'+dims.columns, 'sizeCell-'+dims.cellSize ];
+        return ['crossword', 'numRows-'+dims.rows, 'numColumns-'+dims.columns, 'sizeCell-'+dims.cellSize];
     },
 
     // @override
-    getDefaultDimensions: function( ) {
+    getDefaultDimensions: function() {
         return {
             rows: 10,
             columns: 10,
@@ -1045,7 +1043,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getDefaultStyles: function( ) {
+    getDefaultStyles: function() {
         return {
             cellColor: '#ffffff',
             sepColor: '#f2e941',
@@ -1061,7 +1059,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getDefaultCssStyles: function( pzlSelector, styles, dims ) {
+    getDefaultCssStyles: function(pzlSelector, styles, dims) {
         return {
             grid: {
                 selector: pzlSelector,
@@ -1069,7 +1067,7 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
                     'width: '+(dims.columns*dims.cellSize)+'px',
                     'height: '+(dims.rows*dims.cellSize)+'px',
                     'border-color: ' + styles.outerBorderColor,
-                    'border-width: ' + styles.outerBorderThickness
+                    'border-width: ' + styles.outerBorderThickness+'px'
                 ]
             },
             cell: {
@@ -1094,46 +1092,46 @@ Sudoku.Grid = Sudoku.Class({extends: Object, implements: Sudoku.PublishSubscribe
     },
 
     // @override
-    getSeparatorClasses: function( classes ) {
+    getSeparatorClasses: function(classes) {
         return '';
     },
 
     // @override
-    getPercentage: function( ) {
+    getPercentage: function() {
         return 0;
     },
 
     // @override
-    toDefaultCells: function( ) {
+    toDefaultCells: function() {
         return this;
     },
 
     // @override
-    toPlaceholderCells: function( ) {
+    toPlaceholderCells: function() {
         return this;
     },
 
     // @override
-    toSeparatorCells: function( ) {
+    toSeparatorCells: function() {
         return this;
     },
 
     // @override
-    setSolution: function( words ) {
+    setSolution: function(words) {
         return this;
     },
 
     // @override
-    setClues: function( ) {
+    setClues: function() {
         return this;
     },
 
     // @override
-    checkCluesMissing: function( ) {
+    checkCluesMissing: function() {
         return false;
     },
 
-    toString: function( ) {
+    toString: function() {
         return '[Sudoku.Puzzle type='+this.type+']';
     }
 });
